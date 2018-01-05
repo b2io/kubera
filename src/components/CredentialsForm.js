@@ -11,7 +11,6 @@ class CredentialsForm extends React.Component {
     gitHubToken: '',
     harvestAccountId: '',
     harvestToken: '',
-    onReset: () => {},
     onSave: () => {},
   };
 
@@ -35,10 +34,6 @@ class CredentialsForm extends React.Component {
     this.setState({ [name]: value });
   };
 
-  handleReset = () => {
-    this.props.onReset();
-  };
-
   handleSave = () => {
     const { gitHubToken, harvestAccountId, harvestToken } = this.state;
 
@@ -52,34 +47,33 @@ class CredentialsForm extends React.Component {
       <div>
         <h2>Credentials</h2>
         <label>
+          GitHub Token
           <input
             name="gitHubToken"
             onChange={this.handleChange}
             type="password"
             value={gitHubToken}
           />
-          GitHub Token
         </label>
         <label>
+          Harvest Account ID
           <input
             name="harvestAccountId"
             onChange={this.handleChange}
             type="text"
             value={harvestAccountId}
           />
-          Harvest Account ID
         </label>
         <label>
+          Harvest Token
           <input
             name="harvestToken"
             onChange={this.handleChange}
             type="password"
             value={harvestToken}
           />
-          Harvest Token
         </label>
-        <button onClick={this.handleSave}>Save</button>
-        <button onClick={this.handleReset}>Reset</button>
+        <button onClick={this.handleSave}>Save Credentials</button>
       </div>
     );
   }
