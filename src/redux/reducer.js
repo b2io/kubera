@@ -5,13 +5,11 @@ import {
 } from './actions';
 
 function reduceReceiveEntities(state, action) {
-  const { entities, type } = action.payload;
-
   return {
     ...state,
     entities: {
       ...state.entities,
-      [type]: entities,
+      ...action.payload,
     },
   };
 }

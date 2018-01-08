@@ -1,3 +1,4 @@
+import isFunction from 'lodash/isFunction';
 import React from 'react';
 
 class Table extends React.Component {
@@ -13,7 +14,9 @@ class Table extends React.Component {
           {rows.map(row => (
             <tr key={row.id}>
               {columns.map(([name, key]) => (
-                <td key={`${row.id}.${key}`}>{row[key]}</td>
+                <td key={`${row.id}.${key}`}>
+                  {isFunction(key) ? key(row) : row[key]}
+                </td>
               ))}
             </tr>
           ))}

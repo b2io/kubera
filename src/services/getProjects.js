@@ -1,3 +1,6 @@
+import flatMap from 'lodash/flatMap';
+import sortBy from 'lodash/sortBy';
+import times from 'lodash/times';
 import store, { credentialsSelector } from '../redux';
 
 const resolveProject = project => ({
@@ -5,19 +8,32 @@ const resolveProject = project => ({
   name: `${project.client.name}/${project.name}`,
 });
 
-function getProjects() {
+const fetchProjectsPage = (token, accountId, page) =>
+  fetch(`https://api.harvestapp.com/v2/projects?is_open=true&page=${page}`, {
+    headers: new Headers({
+      Authorization: `Bearer ${token}`,
+      'Harvest-Account-Id': accountId,
+    }),
+  }).then(res => res.json());
+
+function getProjects(page = 1) {
   const { harvestAccountId, harvestToken } = credentialsSelector(
     store.getState(),
   );
 
-  return fetch('https://api.harvestapp.com/v2/projects', {
-    headers: new Headers({
-      Authorization: `Bearer ${harvestToken}`,
-      'Harvest-Account-Id': harvestAccountId,
-    }),
-  })
-    .then(res => res.json())
-    .then(res => res.projects.map(resolveProject));
+  return fetchProjectsPage(harvestToken, harvestAccountId, 1).then(res =>
+    Promise.all([
+      res,
+      ...times(res.total_pages - 1, n =>
+        fetchProjectsPage(harvestToken, harvestAccountId, n + 2),
+      ),
+    ]).then(responses =>
+      sortBy(
+        flatMap(responses, res => res.projects.map(resolveProject)),
+        'name',
+      ),
+    ),
+  );
 }
 
 export default getProjects;

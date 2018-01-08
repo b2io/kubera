@@ -5,7 +5,7 @@ const stateFromProps = props => ({
   harvestAccountId: props.harvestAccountId,
   harvestToken: props.harvestToken,
 });
- 
+
 class CredentialsForm extends React.Component {
   static defaultProps = {
     gitHubToken: '',
@@ -49,15 +49,17 @@ class CredentialsForm extends React.Component {
         <label>
           GitHub Token
           <input
+            autoComplete="off"
             name="gitHubToken"
             onChange={this.handleChange}
-            type="password"
+            type="text"
             value={gitHubToken}
           />
         </label>
         <label>
           Harvest Account ID
           <input
+            autoComplete="off"
             name="harvestAccountId"
             onChange={this.handleChange}
             type="text"
@@ -67,9 +69,10 @@ class CredentialsForm extends React.Component {
         <label>
           Harvest Token
           <input
+            autoComplete="off"
             name="harvestToken"
             onChange={this.handleChange}
-            type="password"
+            type="text"
             value={harvestToken}
           />
         </label>
