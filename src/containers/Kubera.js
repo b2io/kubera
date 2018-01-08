@@ -1,23 +1,29 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import CredentialsForm from '../components/CredentialsForm';
+import { ConfigurationForm, CredentialsForm, Report } from '../components';
 import {
+  configurationSelector,
   credentialsSelector,
-  resetCredentials,
+  reportSelector,
+  saveConfiguration,
   saveCredentials,
 } from '../redux';
 
 class Kubera extends React.Component {
   render() {
-    const { credentials, onResetCredentials, onSaveCredentials } = this.props;
+    const {
+      configuration,
+      credentials,
+      onSaveConfiguration,
+      onSaveCredentials,
+      report,
+    } = this.props;
 
     return (
       <main>
-        <CredentialsForm
-          {...credentials}
-          onReset={onResetCredentials}
-          onSave={onSaveCredentials}
-        />
+        <CredentialsForm {...credentials} onSave={onSaveCredentials} />
+        <ConfigurationForm {...configuration} onSave={onSaveConfiguration} />
+        <Report {...report} />
       </main>
     );
   }
@@ -25,12 +31,14 @@ class Kubera extends React.Component {
 
 function mapStateToProps(state) {
   return {
+    configuration: configurationSelector(state),
     credentials: credentialsSelector(state),
+    report: reportSelector(state),
   };
 }
 
 const mapDispatchToProps = {
-  onResetCredentials: resetCredentials,
+  onSaveConfiguration: saveConfiguration,
   onSaveCredentials: saveCredentials,
 };
 

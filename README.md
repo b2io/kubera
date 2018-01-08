@@ -5,8 +5,30 @@
 ## Usage
 
 1. Authorize Kubera to use your GitHub and Harvest accounts.
-3. Select the GitHub repository and Harvest project.
-4. :money_with_wings: :chart:
+2. Select the GitHub repository and Harvest project.
+3. :money_with_wings: :chart:
+
+## Authorization
+
+### GitHub
+
+Generate a Personal Access Token:
+
+1. Log in to GitHub.
+2. Navigate to https://github.com/settings/tokens.
+3. Click "Generate new token".
+4. Name the token "Kubera" and give it "repo", "read:org", and "read:user" scopes.
+5. Record the token.
+
+### Harvest
+
+Generate a Personal Access Token:
+
+1. Log in to Harvest.
+2. Navigate to https://id.getharvest.com/developers.
+3. Click "Create New Personal Access Token".
+4. Name it "Kubera".
+5. Record the token and account ID.
 
 ## Data Sources
 
@@ -16,25 +38,7 @@ Kubera understands your estimation process by looking at all issues on a GitHub 
 
 Estimate labels should contain text of the form `@estimate(<Points>);`; e.g.: `@estimate(5); L`.
 
-- `<Points>` is the estimated points; a positive integer.
-
-```graphql
-query EstimatesQuery {
-  repository(owner: "b2io", name: "kubera") {
-    labels(first: 100) {
-      pageInfo {
-        endCursor
-        hasNextPage
-      }
-      edges {
-        node {
-          name
-        }
-      }
-    }
-  }
-}
-```
+* `<Points>` is the estimated points; a positive integer.
 
 ### Sprints
 
@@ -42,27 +46,9 @@ Kubera ties your work into sprints using the projects on your GitHub repository.
 
 Sprint projects should contain text of the form `@sprint(<Number>, <StartDate>, <EndDate>);`; e.g.: `@sprint(1, 20180101, 20180114);`.
 
-- `<Number>` is the sprint number; a unique and sequential positive integer.
-- `<StartDate>` is the start date; a date in the form `YYYYMMDD`.
-- `<EndDate>` is the end date; a date in the form `YYYYMMDD`.
-
-```graphql
-query SprintsQuery {
-  repository(owner: "b2io", name: "kubera") {
-    projects(first: 100) {
-      pageInfo {
-        endCursor
-        hasNextPage
-      }
-      edges {
-        node {
-          body
-        }
-      }
-    }
-  }
-}
-```
+* `<Number>` is the sprint number; a unique and sequential positive integer.
+* `<StartDate>` is the start date; a date in the form `YYYYMMDD`.
+* `<EndDate>` is the end date; a date in the form `YYYYMMDD`.
 
 ### Actuals
 
