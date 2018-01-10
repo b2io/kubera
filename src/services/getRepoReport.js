@@ -3,6 +3,7 @@ import gql from 'graphql-tag';
 import get from 'lodash/get';
 import isArray from 'lodash/isArray';
 import mergeWith from 'lodash/mergeWith';
+import sortBy from 'lodash/sortBy';
 import apolloClient from './apolloClient';
 
 const afterParam = value => (value ? `, after: "${value}"` : '');
@@ -103,18 +104,24 @@ const resolveSprint = project => {
 };
 
 const resolveReport = ({ data }) => {
-  const stories = data.repository.issues.edges
-    .map(e => e.node)
-    .map(issue => ({
-      ...issue,
-      labels: issue.labels.edges.map(e => e.node),
-    }))
-    .filter(issue => issue.labels.some(isEstimateLabel))
-    .map(resolveStory);
-  const sprints = data.repository.projects.edges
-    .map(e => e.node)
-    .filter(isSprintProject)
-    .map(resolveSprint);
+  const stories = sortBy(
+    data.repository.issues.edges
+      .map(e => e.node)
+      .map(issue => ({
+        ...issue,
+        labels: issue.labels.edges.map(e => e.node),
+      }))
+      .filter(issue => issue.labels.some(isEstimateLabel))
+      .map(resolveStory),
+    'number',
+  );
+  const sprints = sortBy(
+    data.repository.projects.edges
+      .map(e => e.node)
+      .filter(isSprintProject)
+      .map(resolveSprint),
+    'number',
+  );
 
   return { sprints, stories };
 };

@@ -1,42 +1,53 @@
-import eachDay from 'date-fns/each_day';
-import isBefore from 'date-fns/is_before';
-import flatMap from 'lodash/flatMap';
-import maxBy from 'lodash/maxBy';
+import dateFns from 'date-fns';
+import _ from 'lodash';
 import React from 'react';
 import {
   VictoryAxis,
   VictoryChart,
-  VictoryGroup,
-  VictoryLegend,
   VictoryLine,
+  VictoryScatter,
 } from 'victory';
 
-const sumBy = (list, key) => list.reduce((sum, item) => (sum += item[key]), 0);
+const isBeforeOrEqual = (date, dateToCompare) =>
+  dateFns.isBefore(date, dateToCompare) || dateFns.isEqual(date, dateToCompare);
 
-const resolveData = (sprints, stories) => {
-  return flatMap(sprints, sprint => {
-    const allStories = stories.filter(story =>
-      isBefore(story.openedAt, sprint.endsAt),
-    );
+const resolveSprintData = (sprint, stories) => {
+  const allStories = stories.filter(story =>
+    isBeforeOrEqual(story.openedAt, sprint.endsAt),
+  );
+  const openStories = allStories.filter(
+    story => !story.closedAt || isBeforeOrEqual(sprint.endsAt, story.closedAt),
+  );
+  const closedStories = allStories.filter(
+    story =>
+      story.closedAt &&
+      isBeforeOrEqual(sprint.startsAt, story.closedAt) &&
+      isBeforeOrEqual(story.closedAt, sprint.endsAt),
+  );
 
-    return eachDay(sprint.startsAt, sprint.endsAt).map(date => {
-      const openStories = allStories.filter(
-        story => !story.closedAt || isBefore(date, story.closedAt),
-      );
-
-      return {
-        date,
-        open: sumBy(openStories, 'estimate'),
-      };
-    });
-  });
+  return {
+    all: _.sumBy(allStories, 'estimate'),
+    closed: _.sumBy(closedStories, 'estimate'),
+    date: dateFns.parse(sprint.endsAt),
+    open: _.sumBy(openStories, 'estimate'),
+  };
 };
 
-const resolveGuideline = (sprints, data, maxOpen) =>
-  data.map((d, i) => ({
-    date: d.date,
-    open: maxOpen - maxOpen / data.length * i,
-  }));
+const resolveInitialData = (sprints, sprintData) => {
+  const { startsAt } = _.first(sprints);
+  const { all } = _.first(sprintData);
+
+  return { all, closed: 0, date: dateFns.parse(startsAt), open: all };
+};
+
+const resolveData = (sprints, stories) => {
+  const sprintData = sprints.map(sprint => resolveSprintData(sprint, stories));
+  const initialData = resolveInitialData(sprints, sprintData);
+  // TODO: We shouldn't show data points for sprints that haven't started.
+  // TODO: If the last sprint doesn't have 0 open, determine the projected end date.
+
+  return [initialData, ...sprintData];
+};
 
 class BurndownChart extends React.Component {
   render() {
@@ -44,46 +55,38 @@ class BurndownChart extends React.Component {
 
     if (sprints.length <= 1 || stories.length <= 1) return null;
 
-    const legendData = [
-      { name: 'Open', symbol: { fill: 'tomato' } },
-      { name: 'Guideline', symbol: { fill: 'grey' } },
-    ];
-    const legendStyles = { border: { stroke: 'black' } };
-    const openData = resolveData(sprints, stories);
-    const openStyles = { data: { stroke: 'tomato' } };
-    const maxOpen = maxBy(openData, 'open').open;
-    const domainY = [0, maxOpen];
-    const guidelineData = resolveGuideline(sprints, openData, maxOpen);
-    const guidelineStyles = { data: { stroke: 'grey' } };
+    const data = resolveData(sprints, stories);
+    const domainY = [0, _.maxBy(data, 'open').open];
+    // TODO: Set the ticks on the x-axis to be just sprint-end dates.
 
     return (
-      <VictoryChart padding={70}>
-        <VictoryAxis dependentAxis domain={domainY} label="Story Points" />
-        <VictoryAxis label="Time" scale="time" />
-        <VictoryLegend
-          centerTitle
-          data={legendData}
-          gutter={20}
-          orientation="horizontal"
-          style={legendStyles}
-          title="Legend"
-          x={70}
+      <VictoryChart>
+        <VictoryAxis scale="time" />
+        <VictoryAxis dependentAxis domain={domainY} />
+        <VictoryLine
+          data={data}
+          style={{ data: { stroke: 'grey' } }}
+          x="date"
+          y="all"
         />
-        <VictoryGroup>
-          <VictoryLine
-            data={openData}
-            interpolation="step"
-            style={openStyles}
-            x="date"
-            y="open"
-          />
-          <VictoryLine
-            data={guidelineData}
-            style={guidelineStyles}
-            x="date"
-            y="open"
-          />
-        </VictoryGroup>
+        <VictoryScatter
+          data={data}
+          style={{ data: { fill: 'grey' } }}
+          x="date"
+          y="all"
+        />
+        <VictoryLine
+          data={data}
+          style={{ data: { stroke: 'black' } }}
+          x="date"
+          y="open"
+        />
+        <VictoryScatter
+          data={data}
+          style={{ data: { fill: 'black' } }}
+          x="date"
+          y="open"
+        />
       </VictoryChart>
     );
   }
