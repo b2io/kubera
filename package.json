@@ -2,6 +2,7 @@
   "name": "kubera",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://b2io.github.io/kubera/",
   "dependencies": {
     "apollo-client-preset": "^1.0.5",
     "apollo-link-context": "^1.0.3",
