@@ -17,12 +17,17 @@ const resolveTimeEntry = timeEntry => ({
 });
 
 const fetchProjectReportPage = (project, token, accountId, page) =>
-  fetch(`https://api.harvestapp.com/v2/time_entries?project_id=${project.id}`, {
-    headers: new Headers({
-      Authorization: `Bearer ${token}`,
-      'Harvest-Account-Id': accountId,
-    }),
-  }).then(res => res.json());
+  fetch(
+    `https://api.harvestapp.com/v2/time_entries?project_id=${
+      project.id
+    }&page=${page}`,
+    {
+      headers: new Headers({
+        Authorization: `Bearer ${token}`,
+        'Harvest-Account-Id': accountId,
+      }),
+    },
+  ).then(res => res.json());
 
 function getProjectReport(project) {
   const { harvestAccountId, harvestToken } = credentialsSelector(
