@@ -1,4 +1,5 @@
 import React from 'react';
+import BurndownChart from './BurndownChart';
 import Table from './Table';
 
 class Report extends React.Component {
@@ -8,6 +9,8 @@ class Report extends React.Component {
     return (
       <section>
         <h2>Report</h2>
+        <h3>Burndown</h3>
+        <BurndownChart sprints={sprints} stories={stories} />
         <h3>Sprints</h3>
         <Table
           columns={[
@@ -21,6 +24,7 @@ class Report extends React.Component {
         <h3>Stories</h3>
         <Table
           columns={[
+            ['Number', v => `#${v.number}`],
             ['Title', 'title'],
             ['Estimate', 'estimate'],
             ['Opened At', 'openedAt'],
@@ -35,6 +39,7 @@ class Report extends React.Component {
             ['User', 'user'],
             ['Hours', 'hours'],
             ['Recorded At', 'recordedAt'],
+            ['Reference', v => v.reference ? `#${v.reference}` : ''],
           ]}
           rows={timeEntries}
         />

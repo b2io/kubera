@@ -1,5 +1,5 @@
 import gql from 'graphql-tag';
-import uniqBy from 'lodash/uniqBy';
+import _ from 'lodash';
 import apolloClient from './apolloClient';
 
 const query = gql`
@@ -47,7 +47,7 @@ const resolveRepos = ({ data }) => {
     resolveRepo(e.node),
   );
 
-  return uniqBy([...orgRepos, ...personalRepos], 'id');
+  return _.sortBy(_.uniqBy([...orgRepos, ...personalRepos], 'id'), 'name');
 };
 
 function getRepos() {

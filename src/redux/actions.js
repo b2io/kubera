@@ -6,11 +6,16 @@ import {
 } from '../services';
 import { projectSelector, repoSelector } from './selectors';
 
+const validCredentials = credentials =>
+  ['harvestAccountId', 'harvestToken', 'gitHubToken'].every(
+    key => credentials[key],
+  );
+
 // Action Creators:
 
 const RECEIVE_ENTITIES = 'kubera/RECEIVE_ENTITIES';
-const receiveEntities = (type, entities) => ({
-  payload: { entities, type },
+const receiveEntities = entities => ({
+  payload: entities,
   type: RECEIVE_ENTITIES,
 });
 
@@ -32,10 +37,11 @@ const saveCredentials = credentials => (dispatch, getState) => {
   dispatch(setCredentials(credentials));
   dispatch(clearConfiguration());
 
-  Promise.all([getProjects(), getRepos()]).then(([projects, repos]) => {
-    dispatch(receiveEntities('projects', projects));
-    dispatch(receiveEntities('repos', repos));
-  });
+  if (validCredentials(credentials)) {
+    Promise.all([getProjects(), getRepos()]).then(([projects, repos]) => {
+      dispatch(receiveEntities({ projects, repos }));
+    });
+  }
 };
 
 const saveConfiguration = configuration => (dispatch, getState) => {
@@ -48,24 +54,25 @@ const saveConfiguration = configuration => (dispatch, getState) => {
 
   Promise.all([getProjectReport(project), getRepoReport(repo)]).then(
     ([projectReport, repoReport]) => {
-      dispatch(receiveEntities('timeEntries', projectReport.timeEntries));
-      dispatch(receiveEntities('sprints', repoReport.sprints));
-      dispatch(receiveEntities('stories', repoReport.stories));
+      dispatch(
+        receiveEntities({
+          sprints: repoReport.sprints,
+          stories: repoReport.stories,
+          timeEntries: projectReport.timeEntries,
+        }),
+      );
     },
   );
 };
 
 const clearConfiguration = () => dispatch => {
   dispatch(setConfiguration({}));
-  dispatch(receiveEntities('projects', []));
-  dispatch(receiveEntities('repos', []));
+  dispatch(receiveEntities({ projects: [], repos: [] }));
   dispatch(clearReport());
 };
 
 const clearReport = () => dispatch => {
-  dispatch(receiveEntities('sprints', []));
-  dispatch(receiveEntities('stories', []));
-  dispatch(receiveEntities('timeEntries', []));
+  dispatch(receiveEntities({ sprints: [], stories: [], timeEntries: [] }));
 };
 
 export {
