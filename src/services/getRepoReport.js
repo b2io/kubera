@@ -1,26 +1,13 @@
 import format from 'date-fns/format';
 import gql from 'graphql-tag';
-import get from 'lodash/get';
-import isArray from 'lodash/isArray';
-import mergeWith from 'lodash/mergeWith';
-import sortBy from 'lodash/sortBy';
+import _ from 'lodash';
+import {
+  afterParam,
+  concatMerge,
+  resolveCursors,
+  someHasNextPage,
+} from '../util';
 import apolloClient from './apolloClient';
-
-const afterParam = value => (value ? `, after: "${value}"` : '');
-
-const someHasNextPage = (res, paths) =>
-  paths.some(path => get(res.data, [path, 'pageInfo.hasNextPage'].join('.')));
-
-const resolveCursors = (res, paths) =>
-  paths.map(path => get(res.data, [path, 'pageInfo.endCursor'].join('.')));
-
-const concatMerge = (object, other) =>
-  mergeWith(
-    object,
-    other,
-    (objectValue, sourceValue) =>
-      isArray(objectValue) ? objectValue.concat(sourceValue) : undefined,
-  );
 
 const fetchRepoReport = (repo, cursors = []) => {
   const [owner, name] = repo.name.split('/');
@@ -104,7 +91,7 @@ const resolveSprint = project => {
 };
 
 const resolveReport = ({ data }) => {
-  const stories = sortBy(
+  const stories = _.sortBy(
     data.repository.issues.edges
       .map(e => e.node)
       .map(issue => ({
@@ -115,7 +102,7 @@ const resolveReport = ({ data }) => {
       .map(resolveStory),
     'number',
   );
-  const sprints = sortBy(
+  const sprints = _.sortBy(
     data.repository.projects.edges
       .map(e => e.node)
       .filter(isSprintProject)

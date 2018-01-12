@@ -1,6 +1,4 @@
-import flatMap from 'lodash/flatMap';
-import sortBy from 'lodash/sortBy';
-import times from 'lodash/times';
+import _ from 'lodash';
 import store, { credentialsSelector } from '../redux';
 
 const resolveProject = project => ({
@@ -24,12 +22,12 @@ function getProjects(page = 1) {
   return fetchProjectsPage(harvestToken, harvestAccountId, 1).then(res =>
     Promise.all([
       res,
-      ...times(res.total_pages - 1, n =>
+      ..._.times(res.total_pages - 1, n =>
         fetchProjectsPage(harvestToken, harvestAccountId, n + 2),
       ),
     ]).then(responses =>
-      sortBy(
-        flatMap(responses, res => res.projects.map(resolveProject)),
+      _.sortBy(
+        _.flatMap(responses, res => res.projects.map(resolveProject)),
         'name',
       ),
     ),

@@ -7,22 +7,20 @@ import {
   VictoryLine,
   VictoryScatter,
 } from 'victory';
-
-const roundUpToNearest = (n, toValue) => Math.ceil(n / toValue) * toValue;
-
-const valueBy = (comparator, array, path, defaultValue) =>
-  _.get(comparator(array, path), path, defaultValue);
-
-const minValueBy = (...args) => valueBy(_.minBy, ...args);
-
-const maxValueBy = (...args) => valueBy(_.maxBy, ...args);
-
-const isBeforeOrEqual = (date, dateToCompare) =>
-  dateFns.isBefore(date, dateToCompare) || dateFns.isEqual(date, dateToCompare);
+import {
+  isBeforeOrEqual,
+  maxValueBy,
+  minValueBy,
+  roundUpToNearest,
+} from '../util';
+import Alert from './Alert';
 
 const resolveSprintData = (sprint, stories, reportedAt) => {
   const endsAt = dateFns.min(reportedAt, sprint.endsAt);
   const isProjected = dateFns.isBefore(reportedAt, sprint.endsAt);
+  const isActive =
+    isBeforeOrEqual(sprint.startsAt, reportedAt) &&
+    dateFns.isBefore(reportedAt, sprint.endsAt);
 
   const allStories = stories.filter(story =>
     isBeforeOrEqual(story.openedAt, sprint.endsAt),
@@ -38,6 +36,7 @@ const resolveSprintData = (sprint, stories, reportedAt) => {
   );
 
   return {
+    isActive,
     isProjected,
     sprint,
     all: _.sumBy(allStories, 'estimate'),
@@ -49,10 +48,11 @@ const resolveSprintData = (sprint, stories, reportedAt) => {
 
 const resolveInitialData = (sprints, sprintsData) => {
   const { startsAt } = _.first(sprints);
-  const { all, isProjected, sprint } = _.first(sprintsData);
+  const { all, isActive, isProjected, sprint } = _.first(sprintsData);
 
   return {
     all,
+    isActive,
     isProjected,
     sprint,
     closed: 0,
@@ -74,24 +74,37 @@ class BurndownChart extends React.Component {
   render() {
     const { reportedAt, sprints, stories } = this.props;
 
-    if (sprints.length <= 1 || stories.length <= 1) return null;
+    if (sprints.length <= 1) {
+      return <Alert>No sprints found for this configuration.</Alert>;
+    }
+
+    // Actuals:
 
     const projectStartDate = dateFns.parse(minValueBy(sprints, 'startsAt'));
     const projectEndDate = dateFns.parse(maxValueBy(sprints, 'endsAt'));
-
     const reportedDate = dateFns.parse(reportedAt);
     const sprintsData = resolveSprintsData(sprints, stories, reportedAt);
     const data = [resolveInitialData(sprints, sprintsData), ...sprintsData];
     const totalPoints = maxValueBy(data, 'all');
 
-    const stylesX = {
-      grid: { stroke: 'grey' },
-      ticks: { stroke: 'grey', size: 5 },
-    };
-    const domainY = [0, totalPoints];
+    if (dateFns.isBefore(reportedDate, projectStartDate)) {
+      return <Alert>This project has not yet started.</Alert>;
+    }
+
+    // Analysis:
 
     const actualsData = sprintsData.filter(d => !d.isProjected);
+
+    if (actualsData.length === 0) {
+      return <Alert>No sprints have been completed yet.</Alert>;
+    }
+
     const actualClosedPoints = _.sumBy(actualsData, 'closed');
+
+    if (actualClosedPoints === 0) {
+      return <Alert>No stories have been closed yet.</Alert>;
+    }
+
     const actualDays = dateFns.differenceInCalendarDays(
       maxValueBy(actualsData, 'sprint.endsAt'),
       minValueBy(actualsData, 'sprint.startsAt'),
@@ -123,24 +136,32 @@ class BurndownChart extends React.Component {
         ),
       };
     });
-    const projectedEndDate = maxValueBy(missingSprints, 'endsAt');
+    const projectedEndDate = dateFns.parse(
+      maxValueBy(missingSprints, 'endsAt', projectEndDate),
+    );
+    const projectedData = dateFns
+      .eachDay(projectStartDate, projectedEndDate)
+      .map((date, i) => {
+        return { date, open: totalPoints - actualPointsPerDay * i };
+      });
+
+    // Chart Styles:
 
     const domainX = [
       projectStartDate,
       dateFns.max(projectEndDate, reportedDate, projectedEndDate),
     ];
+    const domainY = [0, totalPoints];
     const ticksX = {
       format: d => {
-        if (dateFns.isEqual(d, projectStartDate)) return '';
+        if (dateFns.isEqual(d, projectStartDate)) return 'α';
         if (dateFns.isEqual(d, reportedDate)) return '';
 
-        const sprint = sprints.find(s => dateFns.isEqual(d, s.endsAt));
-        if (sprint) return sprint.number;
+        const sprint = sprints
+          .concat(missingSprints)
+          .find(s => dateFns.isEqual(d, s.endsAt));
 
-        const missingSprint = missingSprints.find(s =>
-          dateFns.isEqual(d, s.endsAt),
-        );
-        return `${missingSprint.number}*`;
+        return sprint.number;
       },
       values: _.sortBy([
         projectStartDate,
@@ -149,19 +170,30 @@ class BurndownChart extends React.Component {
         reportedDate,
       ]),
     };
-    const projectedData = dateFns
-      .eachDay(projectStartDate, projectedEndDate)
-      .map((date, i) => {
-        return { date, open: totalPoints - actualPointsPerDay * i };
-      });
 
-    // TODO: Clean this mess up.
-    // TODO: What if there are enough planned sprints to cover the backlog?
-    // TODO: Style the tick for the reportedAtDate differently.
-    // TODO: Remove the * from missing-sprint ticks, style the label differently.
+    const stylesX = {
+      tickLabels: {
+        fontStyle: t =>
+          missingSprints.some(s => dateFns.isEqual(t, s.endsAt))
+            ? 'italic'
+            : 'normal',
+        fontWeight: t =>
+          dateFns.isBefore(t, reportedDate) ? 'bold' : 'normal',
+        textDecoration: t =>
+          sprintsData.some(
+            d => dateFns.isEqual(t, d.sprint.endsAt) && d.isActive,
+          )
+            ? 'underline'
+            : 'none',
+      },
+      grid: {
+        stroke: 'grey',
+        strokeDasharray: t => (dateFns.isEqual(t, reportedDate) ? '5, 5' : '0'),
+      },
+    };
 
     return (
-      <VictoryChart domainPadding={{ y: 10 }}>
+      <VictoryChart>
         <VictoryAxis
           domain={domainX}
           scale="time"
