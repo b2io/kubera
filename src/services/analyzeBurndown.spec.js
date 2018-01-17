@@ -174,4 +174,27 @@ test('analyzes an planned off-target project', () => {
   });
 });
 
-test('analyzes a actual off-target project');
+test('analyzes a actual off-target project', () => {
+  const sprints = [
+    buildSprint(1, '2018-01-01', '2018-01-12'),
+    buildSprint(2, '2018-01-15', '2018-01-26'),
+  ];
+  const stories = [
+    buildStory(1, 5, '2017-12-29', '2018-01-24'),
+    buildStory(2, 3, '2017-12-29', '2018-01-10'),
+    buildStory(3, 2, '2017-12-29', null),
+  ];
+  const asOf = format('2018-01-27');
+
+  const analysis = analyzeBurndown(sprints, stories, asOf);
+
+  expect(analysis).toEqual({
+    data: [
+      buildData('2018-01-01', 10, 0, 'actual'),
+      buildData('2018-01-12', 7, 3, 'actual'),
+      buildData('2018-01-26', 2, 8, 'actual'),
+      buildData('2018-02-09', 0, 10, 'projected'),
+    ],
+    error: null,
+  });
+});

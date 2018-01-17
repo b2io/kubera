@@ -72,7 +72,7 @@ const resolveActualData = (sprint, stories, asOf, dateKey = 'endsAt') => {
   return { closed, date, open, total, type: 'actual' };
 };
 
-const resolvePlannedData = (sprint, i, lastData, pointsPerWorkedDay) => {
+const resolveFutureData = (sprint, i, lastData, pointsPerWorkedDay, type) => {
   const plannedWorkedDays = workingDays(sprint);
   const closing = Math.floor(plannedWorkedDays * pointsPerWorkedDay * (i + 1));
   const closed = Math.min(lastData.closed + closing, lastData.total);
@@ -81,9 +81,9 @@ const resolvePlannedData = (sprint, i, lastData, pointsPerWorkedDay) => {
   return {
     closed,
     open,
+    type,
     date: parse(sprint.endsAt),
     total: lastData.total,
-    type: 'planned',
   };
 };
 
@@ -105,21 +105,6 @@ const resolveProjectedSprint = (i, lastSprint) => {
   };
 };
 
-const resolveFutureData = (sprint, i, lastData, pointsPerWorkedDay, type) => {
-  const plannedWorkedDays = workingDays(sprint);
-  const closing = Math.floor(plannedWorkedDays * pointsPerWorkedDay * (i + 1));
-  const closed = Math.min(lastData.closed + closing, lastData.total);
-  const open = Math.max(lastData.open - closing, 0);
-
-  return {
-    closed,
-    open,
-    type,
-    date: parse(sprint.endsAt),
-    total: lastData.total,
-  };
-};
-
 function analyzeBurndown(sprints, stories, asOf) {
   if (isEmpty(sprints)) return resolveError('No sprints.');
   if (hasOverlaps(sprints)) return resolveError('Overlapping sprints.');
@@ -128,58 +113,52 @@ function analyzeBurndown(sprints, stories, asOf) {
 
   // Actuals:
 
-  const completedSprints = sprints.filter(sprint => isCompleted(sprint, asOf));
+  const actualSprints = sprints.filter(sprint => isCompleted(sprint, asOf));
+  const lastActualSprint = last(actualSprints);
   const actualData = [
-    resolveActualData(completedSprints[0], stories, asOf, 'startsAt'),
+    resolveActualData(actualSprints[0], stories, asOf, 'startsAt'),
   ].concat(
-    completedSprints.map(sprint => resolveActualData(sprint, stories, asOf)),
+    actualSprints.map(sprint => resolveActualData(sprint, stories, asOf)),
   );
   const lastActualData = last(actualData);
-  const actualWorkedDays = workingDays(...completedSprints);
+  const actualWorkedDays = workingDays(...actualSprints);
   const actualPointsPerWorkedDay = lastActualData.closed / actualWorkedDays;
 
   // Planned:
 
-  let plannedData = [];
-  const plannedSprints = difference(sprints, completedSprints);
-
-  if (!isEmpty(plannedSprints)) {
-    plannedData = plannedSprints.map((sprint, i) =>
-      resolveFutureData(
-        sprint,
-        i,
-        lastActualData,
-        actualPointsPerWorkedDay,
-        'planned',
-      ),
-    );
-  }
+  const plannedSprints = difference(sprints, actualSprints);
+  const lastPlannedSprint = last(plannedSprints);
+  const plannedData = plannedSprints.map((sprint, i) =>
+    resolveFutureData(
+      sprint,
+      i,
+      lastActualData,
+      actualPointsPerWorkedDay,
+      'planned',
+    ),
+  );
+  const lastPlannedData = last(plannedData);
 
   // Projected:
 
-  let projectedData = [];
-  const lastPlannedData = last(plannedData);
-  const lastPlannedSprint = last(plannedSprints);
-
-  if (lastPlannedData && lastPlannedSprint) {
-    const plannedWorkedDays = workingDays(lastPlannedSprint);
-    const projectedSprintCount = Math.ceil(
-      lastPlannedData.open / (plannedWorkedDays * actualPointsPerWorkedDay),
-    );
-    const projectedSprints = times(projectedSprintCount, n =>
-      resolveProjectedSprint(n, lastPlannedSprint),
-    );
-
-    projectedData = projectedSprints.map((sprint, i) =>
-      resolveFutureData(
-        sprint,
-        i,
-        lastPlannedData,
-        actualPointsPerWorkedDay,
-        'projected',
-      ),
-    );
-  }
+  const projectionData = lastPlannedData || lastActualData;
+  const projectionSprint = lastPlannedSprint || lastActualSprint;
+  const projectionWorkedDays = workingDays(projectionSprint);
+  const projectedSprintCount = Math.ceil(
+    projectionData.open / (projectionWorkedDays * actualPointsPerWorkedDay),
+  );
+  const projectedSprints = times(projectedSprintCount, n =>
+    resolveProjectedSprint(n, projectionSprint),
+  );
+  const projectedData = projectedSprints.map((sprint, i) =>
+    resolveFutureData(
+      sprint,
+      i,
+      projectionData,
+      actualPointsPerWorkedDay,
+      'projected',
+    ),
+  );
 
   return {
     data: actualData.concat(plannedData, projectedData),
