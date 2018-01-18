@@ -2,12 +2,14 @@ import { isBefore, isEqual, isWeekend, startOfDay } from 'date-fns';
 import {
   get,
   isArray,
+  isNil,
   maxBy,
   mergeWith,
   minBy,
   negate,
   overSome,
   rearg,
+  zip,
 } from 'lodash';
 
 const roundUpToNearest = (n, toValue) => Math.ceil(n / toValue) * toValue;
@@ -19,13 +21,24 @@ const minValueBy = (...args) => valueBy(minBy, ...args);
 
 const maxValueBy = (...args) => valueBy(maxBy, ...args);
 
-const afterParam = value => (value ? `, after: "${value}"` : '');
+const pageableQuery = (hasMore, cursor) => (strings, ...values) =>
+  hasMore
+    ? zip(strings, values)
+        .join('')
+        .replace(
+          ', after: $cursor',
+          isNil(cursor) ? '' : `, after: "${cursor}"`,
+        )
+    : '';
 
 const someHasNextPage = (res, paths) =>
   paths.some(path => get(res.data, [path, 'pageInfo.hasNextPage'].join('.')));
 
 const resolveCursors = (res, paths) =>
-  paths.map(path => get(res.data, [path, 'pageInfo.endCursor'].join('.')));
+  paths.map(path => [
+    get(res.data, [path, 'pageInfo.hasNextPage'].join('.'), false),
+    get(res.data, [path, 'pageInfo.endCursor'].join('.'), null),
+  ]);
 
 const concatMerge = (object, other) =>
   mergeWith(
@@ -48,7 +61,6 @@ const isBeforeOrEqualDay = overSome(isBeforeDay, isEqualDay);
 const isWeekday = negate(isWeekend);
 
 export {
-  afterParam,
   concatMerge,
   isAfterDay,
   isBeforeDay,
@@ -57,6 +69,7 @@ export {
   isWeekday,
   maxValueBy,
   minValueBy,
+  pageableQuery,
   resolveCursors,
   roundUpToNearest,
   someHasNextPage,
