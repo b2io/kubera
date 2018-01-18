@@ -1,5 +1,5 @@
-import { format, max, startOfDay } from 'date-fns';
-import { first, last, sortBy } from 'lodash';
+import { format } from 'date-fns';
+import { cond, constant, first, last } from 'lodash';
 import React from 'react';
 import {
   VictoryAxis,
@@ -9,6 +9,16 @@ import {
 } from 'victory';
 import analyzeBurndown from '../services/analyzeBurndown';
 import Alert from './Alert';
+
+const lineStyles = (color, dashed) => ({
+  data: { stroke: color, strokeDasharray: dashed ? '4, 2' : null },
+});
+
+const scatterStyles = (color, solid) => ({
+  data: { fill: solid ? color : 'white', stroke: color, strokeWidth: 1 },
+});
+
+const hasDateInData = data => t => data.some(d => d.date === t);
 
 class BurndownChart extends React.Component {
   static defaultProps = {
@@ -25,36 +35,28 @@ class BurndownChart extends React.Component {
       return <Alert>{error}</Alert>;
     }
 
-    const plannedData = data.filter(
-      d => d.type === 'actual' || d.type === 'planned',
-    );
+    const actualData = data.filter(d => d.type === 'actual');
+    const plannedData = data.filter(d => d.type === 'planned');
     const projectedData = data.filter(d => d.type === 'projected');
-    const asOfDate = startOfDay(asOf);
-
-    // Chart Styles:
-
-    const domainX = [first(data).date, max(asOfDate, last(data).date)];
-    const domainY = [0, last(data).total];
+    const nonProjectedData = actualData.concat(plannedData);
+    const { date: startDate } = first(data);
+    const { date: endDate, total: maxTotal } = last(data);
+    const domainX = [startDate, endDate];
+    const domainY = [0, maxTotal];
     const ticksX = {
-      format: d => {
-        if ([asOfDate, first(data).date].includes(d)) return '';
-
-        return data.findIndex(data => data.date === d);
-      },
-      values: sortBy([...data.map(d => d.date), asOfDate]),
+      format: d => data.findIndex(data => data.date === d),
+      values: data.map(d => d.date),
     };
-
     const stylesX = {
       tickLabels: {
-        fill: t => (projectedData.some(d => d.date === t) ? 'grey' : 'inherit'),
+        fill: cond([
+          [hasDateInData(projectedData), constant('silver')],
+          [hasDateInData(plannedData), constant('lightSlateGray')],
+          [hasDateInData(actualData), constant('darkSlateGray')],
+        ]),
       },
-      grid: {
-        stroke: 'grey',
-        strokeDasharray: t => (t === asOfDate ? '5, 5' : '0'),
-      },
+      grid: { stroke: 'gainsboro' },
     };
-
-    console.table(data);
 
     return (
       <VictoryChart>
@@ -68,31 +70,43 @@ class BurndownChart extends React.Component {
         <VictoryAxis dependentAxis domain={domainY} />
         <VictoryLine
           data={data}
-          style={{ data: { stroke: 'lightGrey', strokeDasharray: '5, 5' } }}
-          x="date"
-          y="open"
-        />
-        <VictoryLine
-          data={data}
-          style={{ data: { stroke: 'grey' } }}
-          x="date"
-          y="total"
-        />
-        <VictoryScatter
-          data={data}
-          style={{ data: { fill: 'white', stroke: 'grey', strokeWidth: 1 } }}
+          style={lineStyles('gray')}
           x="date"
           y="total"
         />
         <VictoryLine
-          data={plannedData}
-          style={{ data: { stroke: 'black' } }}
+          data={data}
+          style={lineStyles('silver', true)}
           x="date"
           y="open"
         />
         <VictoryScatter
-          data={plannedData}
-          style={{ data: { fill: 'black', stroke: 'black', strokeWidth: 1 } }}
+          data={data}
+          style={scatterStyles('silver')}
+          x="date"
+          y="open"
+        />
+        <VictoryLine
+          data={nonProjectedData}
+          style={lineStyles('lightSlateGray', true)}
+          x="date"
+          y="open"
+        />
+        <VictoryScatter
+          data={nonProjectedData}
+          style={scatterStyles('lightSlateGray')}
+          x="date"
+          y="open"
+        />
+        <VictoryLine
+          data={actualData}
+          style={lineStyles('darkSlateGray')}
+          x="date"
+          y="open"
+        />
+        <VictoryScatter
+          data={actualData}
+          style={scatterStyles('darkSlateGray', true)}
           x="date"
           y="open"
         />
