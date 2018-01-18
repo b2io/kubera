@@ -198,3 +198,26 @@ test('analyzes a actual off-target project', () => {
     error: null,
   });
 });
+
+test('handles stories opened after the project starts', () => {
+  const sprints = [
+    buildSprint(1, '2018-01-01', '2018-01-12'),
+    buildSprint(2, '2018-01-15', '2018-01-26'),
+  ];
+  const stories = [
+    buildStory(1, 5, '2017-12-29', '2018-01-05'),
+    buildStory(2, 2, '2018-01-15', '2018-01-19'),
+  ];
+  const asOf = format('2018-01-27');
+
+  const analysis = analyzeBurndown(sprints, stories, asOf);
+
+  expect(analysis).toEqual({
+    data: [
+      buildData('2018-01-01', 5, 0, 'actual'),
+      buildData('2018-01-12', 0, 5, 'actual'),
+      buildData('2018-01-26', 0, 7, 'actual'),
+    ],
+    error: null,
+  });
+});
