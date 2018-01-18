@@ -1,9 +1,9 @@
 import { format } from 'date-fns';
 import gql from 'graphql-tag';
-import { flatten, sortBy } from 'lodash';
+import { flatten, get, sortBy } from 'lodash';
 import {
-  afterParam,
   concatMerge,
+  pageableQuery,
   resolveCursors,
   someHasNextPage,
 } from '../util';
@@ -11,50 +11,54 @@ import apolloClient from './apolloClient';
 
 const pagingPaths = ['repository.issues', 'repository.projects'];
 
-const fetchRepoReport = (repo, cursors = []) => {
+const fetchRepoReport = (repo, pagingInfo = [[true, null], [true, null]]) => {
   const [owner, name] = repo.name.split('/');
-  const [issuesCursor, projectsCursor] = cursors;
+  const [issuesPaging, projectsPaging] = pagingInfo;
 
   return apolloClient
     .query({
       query: gql`
       query RepoReportQuery($owner: String!, $name: String!) {
         repository(owner: $owner, name: $name) {
-          issues(first: 100${afterParam(issuesCursor)}) {
-            pageInfo {
-              endCursor
-              hasNextPage
-            }
-            edges {
-              node {
-                createdAt
-                closedAt
-                id
-                number
-                title
-                labels(first: 100) {
-                  edges {
-                    node {
-                      name
+          ${pageableQuery(...issuesPaging)`
+            issues(first: 100, after: $cursor) {
+              pageInfo {
+                endCursor
+                hasNextPage
+              }
+              edges {
+                node {
+                  createdAt
+                  closedAt
+                  id
+                  number
+                  title
+                  labels(first: 100) {
+                    edges {
+                      node {
+                        name
+                      }
                     }
                   }
                 }
               }
             }
-          }
-          projects(first: 100${afterParam(projectsCursor)}) {
-            pageInfo {
-              endCursor
-              hasNextPage
-            }
-            edges {
-              node {
-                body
-                id
-                name
+          `}
+          ${pageableQuery(...projectsPaging)`
+            projects(first: 100, after: $cursor) {
+              pageInfo {
+                endCursor
+                hasNextPage
+              }
+              edges {
+                node {
+                  body
+                  id
+                  name
+                }
               }
             }
-          }
+          `}
         }
       }
     `,
@@ -105,7 +109,7 @@ const resolveSprint = project => {
 
 const resolveReport = ({ data }) => {
   const stories = sortBy(
-    data.repository.issues.edges
+    get(data.repository, 'issues.edges', [])
       .map(e => e.node)
       .map(issue => ({
         ...issue,
@@ -116,7 +120,7 @@ const resolveReport = ({ data }) => {
     'number',
   );
   const sprints = sortBy(
-    data.repository.projects.edges
+    get(data.repository, 'projects.edges', [])
       .map(e => e.node)
       .filter(isSprintProject)
       .map(resolveSprint),
@@ -127,12 +131,14 @@ const resolveReport = ({ data }) => {
 };
 
 function getRepoReport(repo) {
-  return fetchRepoReport(repo).then(responses =>
-    responses.reduce(
-      (report, res) => concatMerge(report, resolveReport(res)),
-      {},
-    ),
-  );
+  return fetchRepoReport(repo)
+    .then(responses =>
+      responses.reduce(
+        (report, res) => concatMerge(report, resolveReport(res)),
+        {},
+      ),
+    )
+    .then(report => console.log('report', report) || report);
 }
 
 export default getRepoReport;

@@ -25,11 +25,6 @@ const hasOverlaps = sprints =>
     ),
   );
 
-const hasVelocity = (stories, asOf) =>
-  stories.some(
-    story => story.closedAt && isBeforeOrEqualDay(story.closedAt, asOf),
-  );
-
 const isCompleted = (sprint, asOf) => isAfterDay(asOf, sprint.endsAt);
 
 const workingDays = (...sprints) =>
@@ -56,19 +51,27 @@ const resolveActualData = (sprint, stories, asOf, dateKey = 'endsAt') => {
   return { closed, date, open, total, type: 'actual' };
 };
 
-const resolveFutureData = (sprint, i, lastData, pointsPerWorkedDay, type) => {
+const resolveFutureData = (
+  sprint,
+  stories,
+  i,
+  lastData,
+  pointsPerWorkedDay,
+  type,
+) => {
   const plannedWorkedDays = workingDays(sprint);
+  const openingStories = stories.filter(
+    story =>
+      isAfterDay(story.openedAt, lastData.date) &&
+      isBeforeOrEqualDay(story.openedAt, sprint.endsAt),
+  );
+  const opening = sumBy(openingStories, 'estimate');
   const closing = Math.floor(plannedWorkedDays * pointsPerWorkedDay * (i + 1));
-  const closed = Math.min(lastData.closed + closing, lastData.total);
-  const open = Math.max(lastData.open - closing, 0);
+  const total = lastData.total + opening;
+  const closed = Math.min(lastData.closed + closing, total);
+  const open = Math.max(total - closed, 0);
 
-  return {
-    closed,
-    open,
-    type,
-    date: parse(sprint.endsAt),
-    total: lastData.total,
-  };
+  return { closed, open, total, type, date: parse(sprint.endsAt) };
 };
 
 const resolveProjectedSprint = (i, lastSprint) => {
@@ -93,11 +96,13 @@ function analyzeBurndown(sprints, stories, asOf) {
   if (isEmpty(sprints)) return resolveError('No sprints.');
   if (hasOverlaps(sprints)) return resolveError('Overlapping sprints.');
   if (isEmpty(stories)) return resolveError('No stories.');
-  if (!hasVelocity(stories, asOf)) return resolveError('No velocity.');
 
   // Actuals:
 
   const actualSprints = sprints.filter(sprint => isCompleted(sprint, asOf));
+
+  if (isEmpty(actualSprints)) return resolveError('No sprints have ended.');
+
   const lastActualSprint = last(actualSprints);
   const actualData = [
     resolveActualData(actualSprints[0], stories, asOf, 'startsAt'),
@@ -108,6 +113,8 @@ function analyzeBurndown(sprints, stories, asOf) {
   const actualWorkedDays = workingDays(...actualSprints);
   const actualPointsPerWorkedDay = lastActualData.closed / actualWorkedDays;
 
+  if (actualPointsPerWorkedDay === 0) return resolveError('No velocity.');
+
   // Planned:
 
   const plannedSprints = difference(sprints, actualSprints);
@@ -115,6 +122,7 @@ function analyzeBurndown(sprints, stories, asOf) {
   const plannedData = plannedSprints.map((sprint, i) =>
     resolveFutureData(
       sprint,
+      stories,
       i,
       lastActualData,
       actualPointsPerWorkedDay,
@@ -137,6 +145,7 @@ function analyzeBurndown(sprints, stories, asOf) {
   const projectedData = projectedSprints.map((sprint, i) =>
     resolveFutureData(
       sprint,
+      stories,
       i,
       projectionData,
       actualPointsPerWorkedDay,

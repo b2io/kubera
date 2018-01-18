@@ -41,6 +41,7 @@ class BurndownChart extends React.Component {
     const nonProjectedData = actualData.concat(plannedData);
     const { date: startDate } = first(data);
     const { date: endDate, total: maxTotal } = last(data);
+    const domainPadding = { y: 1 };
     const domainX = [startDate, endDate];
     const domainY = [0, maxTotal];
     const ticksX = {
@@ -57,60 +58,63 @@ class BurndownChart extends React.Component {
       },
       grid: { stroke: 'gainsboro' },
     };
+    const containerStyles = { maxWidth: '60em' };
 
     return (
-      <VictoryChart>
-        <VictoryAxis
-          domain={domainX}
-          scale="time"
-          style={stylesX}
-          tickFormat={ticksX.format}
-          tickValues={ticksX.values}
-        />
-        <VictoryAxis dependentAxis domain={domainY} />
-        <VictoryLine
-          data={data}
-          style={lineStyles('gray')}
-          x="date"
-          y="total"
-        />
-        <VictoryLine
-          data={data}
-          style={lineStyles('silver', true)}
-          x="date"
-          y="open"
-        />
-        <VictoryScatter
-          data={data}
-          style={scatterStyles('silver')}
-          x="date"
-          y="open"
-        />
-        <VictoryLine
-          data={nonProjectedData}
-          style={lineStyles('lightSlateGray', true)}
-          x="date"
-          y="open"
-        />
-        <VictoryScatter
-          data={nonProjectedData}
-          style={scatterStyles('lightSlateGray')}
-          x="date"
-          y="open"
-        />
-        <VictoryLine
-          data={actualData}
-          style={lineStyles('darkSlateGray')}
-          x="date"
-          y="open"
-        />
-        <VictoryScatter
-          data={actualData}
-          style={scatterStyles('darkSlateGray', true)}
-          x="date"
-          y="open"
-        />
-      </VictoryChart>
+      <div style={containerStyles}>
+        <VictoryChart domainPadding={domainPadding}>
+          <VictoryAxis
+            domain={domainX}
+            scale="time"
+            style={stylesX}
+            tickFormat={ticksX.format}
+            tickValues={ticksX.values}
+          />
+          <VictoryAxis dependentAxis domain={domainY} />
+          <VictoryLine
+            data={data}
+            style={lineStyles('gray')}
+            x="date"
+            y="total"
+          />
+          <VictoryLine
+            data={data}
+            style={lineStyles('silver', true)}
+            x="date"
+            y="open"
+          />
+          <VictoryScatter
+            data={data}
+            style={scatterStyles('silver')}
+            x="date"
+            y="open"
+          />
+          <VictoryLine
+            data={nonProjectedData}
+            style={lineStyles('lightSlateGray', true)}
+            x="date"
+            y="open"
+          />
+          <VictoryScatter
+            data={nonProjectedData}
+            style={scatterStyles('lightSlateGray')}
+            x="date"
+            y="open"
+          />
+          <VictoryLine
+            data={actualData}
+            style={lineStyles('darkSlateGray')}
+            x="date"
+            y="open"
+          />
+          <VictoryScatter
+            data={actualData}
+            style={scatterStyles('darkSlateGray', true)}
+            x="date"
+            y="open"
+          />
+        </VictoryChart>
+      </div>
     );
   }
 }
