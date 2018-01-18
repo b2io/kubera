@@ -3,32 +3,16 @@ import {
   differenceInCalendarDays,
   eachDay,
   format,
-  isBefore,
-  isEqual,
-  isWeekend,
   parse,
-  startOfDay,
 } from 'date-fns';
+import { difference, find, isEmpty, last, sumBy, times } from 'lodash';
 import {
-  difference,
-  find,
-  isEmpty,
-  last,
-  negate,
-  overSome,
-  rearg,
-  sumBy,
-  times,
-} from 'lodash';
-
-const alignToDay = f => (...dates) => f(...dates.map(startOfDay));
-const isBeforeDay = alignToDay(isBefore);
-const isAfterDay = rearg(isBeforeDay, [1, 0]);
-const isEqualDay = alignToDay(isEqual);
-const isBeforeOrEqualDay = overSome(isBeforeDay, isEqualDay);
-const isWeekday = negate(isWeekend);
-
-const roundUpToNearest = (n, toValue) => Math.ceil(n / toValue) * toValue;
+  isBeforeDay,
+  isAfterDay,
+  isBeforeOrEqualDay,
+  isWeekday,
+  roundUpToNearest,
+} from '../util';
 
 const hasOverlaps = sprints =>
   sprints.some((sprint, i) =>

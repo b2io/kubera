@@ -1,6 +1,6 @@
-import format from 'date-fns/format';
+import { format } from 'date-fns';
 import gql from 'graphql-tag';
-import _ from 'lodash';
+import { flatten, sortBy } from 'lodash';
 import {
   afterParam,
   concatMerge,
@@ -9,12 +9,15 @@ import {
 } from '../util';
 import apolloClient from './apolloClient';
 
+const pagingPaths = ['repository.issues', 'repository.projects'];
+
 const fetchRepoReport = (repo, cursors = []) => {
   const [owner, name] = repo.name.split('/');
   const [issuesCursor, projectsCursor] = cursors;
 
-  return apolloClient.query({
-    query: gql`
+  return apolloClient
+    .query({
+      query: gql`
       query RepoReportQuery($owner: String!, $name: String!) {
         repository(owner: $owner, name: $name) {
           issues(first: 100${afterParam(issuesCursor)}) {
@@ -55,8 +58,18 @@ const fetchRepoReport = (repo, cursors = []) => {
         }
       }
     `,
-    variables: { name, owner },
-  });
+      variables: { name, owner },
+    })
+    .then(
+      res =>
+        someHasNextPage(res, pagingPaths)
+          ? Promise.all([
+              res,
+              fetchRepoReport(repo, resolveCursors(res, pagingPaths)),
+            ])
+          : [res],
+    )
+    .then(flatten);
 };
 
 const isEstimateLabel = ({ name }) => name.match(/@estimate\([1-9]+\d*\);/);
@@ -91,7 +104,7 @@ const resolveSprint = project => {
 };
 
 const resolveReport = ({ data }) => {
-  const stories = _.sortBy(
+  const stories = sortBy(
     data.repository.issues.edges
       .map(e => e.node)
       .map(issue => ({
@@ -102,7 +115,7 @@ const resolveReport = ({ data }) => {
       .map(resolveStory),
     'number',
   );
-  const sprints = _.sortBy(
+  const sprints = sortBy(
     data.repository.projects.edges
       .map(e => e.node)
       .filter(isSprintProject)
@@ -113,25 +126,13 @@ const resolveReport = ({ data }) => {
   return { sprints, stories };
 };
 
-const pagingPaths = ['repository.issues', 'repository.projects'];
-
 function getRepoReport(repo) {
-  return fetchRepoReport(repo)
-    .then(
-      res =>
-        someHasNextPage(res, pagingPaths)
-          ? Promise.all([
-              res,
-              fetchRepoReport(repo, resolveCursors(res, pagingPaths)),
-            ])
-          : [res],
-    )
-    .then(responses =>
-      responses.reduce(
-        (report, res) => concatMerge(report, resolveReport(res)),
-        {},
-      ),
-    );
+  return fetchRepoReport(repo).then(responses =>
+    responses.reduce(
+      (report, res) => concatMerge(report, resolveReport(res)),
+      {},
+    ),
+  );
 }
 
 export default getRepoReport;

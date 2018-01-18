@@ -37,8 +37,7 @@ class BurndownChart extends React.Component {
     const domainY = [0, last(data).total];
     const ticksX = {
       format: d => {
-        if (d === first(data).date) return 'α';
-        if (d === asOfDate) return '';
+        if ([asOfDate, first(data).date].includes(d)) return '';
 
         return data.findIndex(data => data.date === d);
       },
@@ -47,15 +46,15 @@ class BurndownChart extends React.Component {
 
     const stylesX = {
       tickLabels: {
-        fontStyle: t =>
-          projectedData.some(d => d.date === t) ? 'italic' : 'normal',
-        fontWeight: t => (t === asOfDate ? 'bold' : 'normal'),
+        fill: t => (projectedData.some(d => d.date === t) ? 'grey' : 'inherit'),
       },
       grid: {
         stroke: 'grey',
         strokeDasharray: t => (t === asOfDate ? '5, 5' : '0'),
       },
     };
+
+    console.table(data);
 
     return (
       <VictoryChart>
@@ -81,7 +80,7 @@ class BurndownChart extends React.Component {
         />
         <VictoryScatter
           data={data}
-          style={{ data: { fill: 'grey' } }}
+          style={{ data: { fill: 'white', stroke: 'grey', strokeWidth: 1 } }}
           x="date"
           y="total"
         />
@@ -93,7 +92,7 @@ class BurndownChart extends React.Component {
         />
         <VictoryScatter
           data={plannedData}
-          style={{ data: { fill: 'black' } }}
+          style={{ data: { fill: 'black', stroke: 'black', strokeWidth: 1 } }}
           x="date"
           y="open"
         />
