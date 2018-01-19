@@ -131,14 +131,12 @@ const resolveReport = ({ data }) => {
 };
 
 function getRepoReport(repo) {
-  return fetchRepoReport(repo)
-    .then(responses =>
-      responses.reduce(
-        (report, res) => concatMerge(report, resolveReport(res)),
-        {},
-      ),
-    )
-    .then(report => console.log('report', report) || report);
+  return fetchRepoReport(repo).then(responses =>
+    responses.reduce(
+      (report, res) => concatMerge(report, resolveReport(res)),
+      {},
+    ),
+  );
 }
 
 export default getRepoReport;

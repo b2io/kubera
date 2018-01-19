@@ -1,4 +1,4 @@
-import { isBefore, isEqual, isWeekend, startOfDay } from 'date-fns';
+import { format, isBefore, isEqual, isWeekend, startOfDay } from 'date-fns';
 import {
   get,
   isArray,
@@ -60,6 +60,8 @@ const isBeforeOrEqualDay = overSome(isBeforeDay, isEqualDay);
 
 const isWeekday = negate(isWeekend);
 
+const shortDay = d => format(d, 'YYYY-MM-DD');
+
 export {
   concatMerge,
   isAfterDay,
@@ -72,5 +74,6 @@ export {
   pageableQuery,
   resolveCursors,
   roundUpToNearest,
+  shortDay,
   someHasNextPage,
 };
