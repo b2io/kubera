@@ -1,49 +1,49 @@
 import React from 'react';
+import { Tab } from 'semantic-ui-react';
+import { shortDay } from '../util';
 import BurndownChart from './BurndownChart';
 import Table from './Table';
+
+const sprintColumns = [
+  ['#', 'number'],
+  ['Name', 'name'],
+  ['Starts At', v => shortDay(v.startsAt)],
+  ['Ends At', v => shortDay(v.endsAt)],
+];
+
+const storyColumns = [
+  ['#', 'number'],
+  ['Title', 'title'],
+  ['Estimate', 'estimate'],
+  ['Opened At', v => shortDay(v.openedAt)],
+  ['Closed At', v => shortDay(v.closedAt)],
+];
+
+const timeEntryColumns = [
+  ['Task', 'task'],
+  ['User', 'user'],
+  ['Hours', 'hours'],
+  ['Recorded At', v => shortDay(v.recordedAt)],
+  ['Reference', v => (v.reference ? `#${v.reference}` : '')],
+];
+
+const tr = (columns, rows) => () => <Table columns={columns} rows={rows} />;
 
 class Report extends React.Component {
   render() {
     const { sprints, stories, timeEntries } = this.props;
+    const panes = [
+      { menuItem: 'Sprints', render: tr(sprintColumns, sprints) },
+      { menuItem: 'Stories', render: tr(storyColumns, stories) },
+      { menuItem: 'Time Entries', render: tr(timeEntryColumns, timeEntries) },
+    ];
+    const tabMenu = { pointing: true, secondary: true };
 
     return (
-      <section>
-        <h2>Report</h2>
-        <h3>Burndown</h3>
+      <React.Fragment>
         <BurndownChart sprints={sprints} stories={stories} />
-        <h3>Sprints</h3>
-        <Table
-          columns={[
-            ['Name', 'name'],
-            ['Number', 'number'],
-            ['Starts At', 'startsAt'],
-            ['Ends At', 'endsAt'],
-          ]}
-          rows={sprints}
-        />
-        <h3>Stories</h3>
-        <Table
-          columns={[
-            ['Number', v => `#${v.number}`],
-            ['Title', 'title'],
-            ['Estimate', 'estimate'],
-            ['Opened At', 'openedAt'],
-            ['Closed At', 'closedAt'],
-          ]}
-          rows={stories}
-        />
-        <h3>Time Entries</h3>
-        <Table
-          columns={[
-            ['Task', 'task'],
-            ['User', 'user'],
-            ['Hours', 'hours'],
-            ['Recorded At', 'recordedAt'],
-            ['Reference', v => v.reference ? `#${v.reference}` : ''],
-          ]}
-          rows={timeEntries}
-        />
-      </section>
+        <Tab menu={tabMenu} panes={panes} />
+      </React.Fragment>
     );
   }
 }

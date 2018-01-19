@@ -1,27 +1,34 @@
-import isFunction from 'lodash/isFunction';
+import { isFunction } from 'lodash';
 import React from 'react';
+import { Table as SemanticTable } from 'semantic-ui-react';
 
 class Table extends React.Component {
   render() {
     const { columns, rows } = this.props;
 
     return (
-      <table>
-        <thead>
-          <tr>{columns.map(([name]) => <td key={name}>{name}</td>)}</tr>
-        </thead>
-        <tbody>
+      <SemanticTable celled>
+        <SemanticTable.Header>
+          <SemanticTable.Row>
+            {columns.map(([name]) => (
+              <SemanticTable.HeaderCell key={name}>
+                {name}
+              </SemanticTable.HeaderCell>
+            ))}
+          </SemanticTable.Row>
+        </SemanticTable.Header>
+        <SemanticTable.Body>
           {rows.map(row => (
-            <tr key={row.id}>
+            <SemanticTable.Row key={row.id}>
               {columns.map(([name, key]) => (
-                <td key={`${row.id}.${key}`}>
+                <SemanticTable.Cell key={`${row.id}.${key}`}>
                   {isFunction(key) ? key(row) : row[key]}
-                </td>
+                </SemanticTable.Cell>
               ))}
-            </tr>
+            </SemanticTable.Row>
           ))}
-        </tbody>
-      </table>
+        </SemanticTable.Body>
+      </SemanticTable>
     );
   }
 }

@@ -1,10 +1,18 @@
 import React from 'react';
-import Select from './Select';
+import { Form } from 'semantic-ui-react';
+
+const toOption = (text, value, key = value) => v => ({
+  key: v[key],
+  text: v[text],
+  value: v[value],
+});
 
 const stateFromProps = props => ({
   project: props.project,
   repo: props.repo,
 });
+
+const validate = state => state.project && state.repo;
 
 class ConfigurationForm extends React.Component {
   static defaultProps = {
@@ -25,8 +33,12 @@ class ConfigurationForm extends React.Component {
     }
   }
 
-  handleSelect = ({ name, value }) => {
-    this.setState({ [name]: value });
+  handleProjectChange = (event, { value }) => {
+    this.setState({ project: value });
+  };
+
+  handleRepoChange = (event, { value }) => {
+    this.setState({ repo: value });
   };
 
   handleSave = () => {
@@ -38,30 +50,36 @@ class ConfigurationForm extends React.Component {
   render() {
     const { projects, repos } = this.props;
     const { project, repo } = this.state;
+    const isValid = validate(this.state);
 
     return (
-      <section>
-        <h2>Configuration</h2>
-        <label>
-          GitHub Repository
-          <Select
-            name="repo"
-            onSelect={this.handleSelect}
-            options={repos}
-            value={repo}
-          />
-        </label>
-        <label>
-          Harvest Project
-          <Select
-            name="project"
-            onSelect={this.handleSelect}
-            options={projects}
-            value={project}
-          />
-        </label>
-        <button onClick={this.handleSave}>Save Configuration</button>
-      </section>
+      <Form>
+        <Form.Dropdown
+          label="GitHub Repository"
+          onChange={this.handleRepoChange}
+          options={repos.map(toOption('name', 'id'))}
+          placeholder="Select Repo"
+          search
+          selection
+          value={repo}
+        />
+        <Form.Dropdown
+          label="Harvest Project"
+          onChange={this.handleProjectChange}
+          options={projects.map(toOption('name', 'id'))}
+          placeholder="Select Project"
+          search
+          selection
+          value={project}
+        />
+        <Form.Button
+          disabled={!isValid}
+          onClick={this.handleSave}
+          positive
+        >
+          Save Configuration
+        </Form.Button>
+      </Form>
     );
   }
 }

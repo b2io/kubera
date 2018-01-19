@@ -1,10 +1,14 @@
 import React from 'react';
+import { Form } from 'semantic-ui-react';
 
 const stateFromProps = props => ({
   gitHubToken: props.gitHubToken,
   harvestAccountId: props.harvestAccountId,
   harvestToken: props.harvestToken,
 });
+
+const validate = state =>
+  state.gitHubToken && state.harvestAccountId && state.harvestToken;
 
 class CredentialsForm extends React.Component {
   static defaultProps = {
@@ -42,42 +46,37 @@ class CredentialsForm extends React.Component {
 
   render() {
     const { gitHubToken, harvestAccountId, harvestToken } = this.state;
+    const isValid = validate(this.state);
 
     return (
-      <div>
-        <h2>Credentials</h2>
-        <label>
-          GitHub Token
-          <input
+      <Form>
+        <Form.Input
+          autoComplete="off"
+          label="GitHub Token"
+          name="gitHubToken"
+          onChange={this.handleChange}
+          value={gitHubToken}
+        />
+        <Form.Group widths="equal">
+          <Form.Input
             autoComplete="off"
-            name="gitHubToken"
-            onChange={this.handleChange}
-            type="text"
-            value={gitHubToken}
-          />
-        </label>
-        <label>
-          Harvest Account ID
-          <input
-            autoComplete="off"
+            label="Harvest Account ID"
             name="harvestAccountId"
             onChange={this.handleChange}
-            type="text"
             value={harvestAccountId}
           />
-        </label>
-        <label>
-          Harvest Token
-          <input
+          <Form.Input
             autoComplete="off"
+            label="Harvest Token"
             name="harvestToken"
             onChange={this.handleChange}
-            type="text"
             value={harvestToken}
           />
-        </label>
-        <button onClick={this.handleSave}>Save Credentials</button>
-      </div>
+        </Form.Group>
+        <Form.Button disabled={!isValid} onClick={this.handleSave} positive>
+          Save Credentials
+        </Form.Button>
+      </Form>
     );
   }
 }

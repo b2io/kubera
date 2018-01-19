@@ -1,6 +1,7 @@
 import { format } from 'date-fns';
 import { cond, constant, first, last } from 'lodash';
 import React from 'react';
+import { Message } from 'semantic-ui-react';
 import {
   VictoryAxis,
   VictoryChart,
@@ -8,7 +9,6 @@ import {
   VictoryScatter,
 } from 'victory';
 import analyzeBurndown from '../services/analyzeBurndown';
-import Alert from './Alert';
 
 const lineStyles = (color, dashed) => ({
   data: { stroke: color, strokeDasharray: dashed ? '4, 2' : null },
@@ -32,7 +32,11 @@ class BurndownChart extends React.Component {
     const { data, error } = analyzeBurndown(sprints, stories, asOf);
 
     if (error) {
-      return <Alert>{error}</Alert>;
+      return (
+        <Message negative>
+          <Message.Header>{error}</Message.Header>
+        </Message>
+      );
     }
 
     const actualData = data.filter(d => d.type === 'actual');
@@ -58,10 +62,9 @@ class BurndownChart extends React.Component {
       },
       grid: { stroke: 'gainsboro' },
     };
-    const containerStyles = { maxWidth: '60em' };
 
     return (
-      <div style={containerStyles}>
+      <React.Fragment>
         <VictoryChart domainPadding={domainPadding}>
           <VictoryAxis
             domain={domainX}
@@ -114,7 +117,7 @@ class BurndownChart extends React.Component {
             y="open"
           />
         </VictoryChart>
-      </div>
+      </React.Fragment>
     );
   }
 }
