@@ -12,6 +12,8 @@ const stateFromProps = props => ({
   repo: props.repo,
 });
 
+const validate = state => state.project && state.repo;
+
 class ConfigurationForm extends React.Component {
   static defaultProps = {
     onSave: () => {},
@@ -48,6 +50,7 @@ class ConfigurationForm extends React.Component {
   render() {
     const { projects, repos } = this.props;
     const { project, repo } = this.state;
+    const isValid = validate(this.state);
 
     return (
       <Form>
@@ -69,7 +72,13 @@ class ConfigurationForm extends React.Component {
           selection
           value={project}
         />
-        <Form.Button onClick={this.handleSave}>Save Configuration</Form.Button>
+        <Form.Button
+          disabled={!isValid}
+          onClick={this.handleSave}
+          positive
+        >
+          Save Configuration
+        </Form.Button>
       </Form>
     );
   }

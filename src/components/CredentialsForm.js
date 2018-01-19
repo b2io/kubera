@@ -7,6 +7,9 @@ const stateFromProps = props => ({
   harvestToken: props.harvestToken,
 });
 
+const validate = state =>
+  state.gitHubToken && state.harvestAccountId && state.harvestToken;
+
 class CredentialsForm extends React.Component {
   static defaultProps = {
     gitHubToken: '',
@@ -43,6 +46,7 @@ class CredentialsForm extends React.Component {
 
   render() {
     const { gitHubToken, harvestAccountId, harvestToken } = this.state;
+    const isValid = validate(this.state);
 
     return (
       <Form>
@@ -69,7 +73,9 @@ class CredentialsForm extends React.Component {
             value={harvestToken}
           />
         </Form.Group>
-        <Form.Button onClick={this.handleSave}>Save Credentials</Form.Button>
+        <Form.Button disabled={!isValid} onClick={this.handleSave} positive>
+          Save Credentials
+        </Form.Button>
       </Form>
     );
   }

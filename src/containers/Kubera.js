@@ -5,6 +5,7 @@ import {
   Dimmer,
   Header,
   Loader,
+  Message,
   Segment,
   Step,
 } from 'semantic-ui-react';
@@ -19,6 +20,7 @@ import {
   saveCredentials,
   setActiveStep,
   stepsConfigSelector,
+  errorSelector,
 } from '../redux';
 
 const steps = [
@@ -37,6 +39,7 @@ class Kubera extends React.Component {
       activeStep,
       configuration,
       credentials,
+      error,
       loading,
       onSaveConfiguration,
       onSaveCredentials,
@@ -57,6 +60,12 @@ class Kubera extends React.Component {
     return (
       <Container style={containerStyles} text>
         <Header size="huge">Kubera</Header>
+        {error && (
+          <Message negative>
+            <Message.Header>Error</Message.Header>
+            <p>{error}</p>
+          </Message>
+        )}
         <div>
           <Step.Group attached="top" ordered>
             {steps.map((step, i) => (
@@ -72,7 +81,7 @@ class Kubera extends React.Component {
               </Step>
             ))}
           </Step.Group>
-          <Segment attached>
+          <Segment attached clearing>
             <Dimmer active={loading} inverted>
               <Loader indeterminate />
             </Dimmer>
@@ -89,6 +98,7 @@ function mapStateToProps(state) {
     activeStep: activeStepSelector(state),
     configuration: configurationSelector(state),
     credentials: credentialsSelector(state),
+    error: errorSelector(state),
     loading: loadingSelector(state),
     report: reportSelector(state),
     stepsConfig: stepsConfigSelector(state),

@@ -4,14 +4,14 @@ import { shortDay } from '../util';
 import BurndownChart from './BurndownChart';
 import Table from './Table';
 
-const sprintsColumns = [
+const sprintColumns = [
   ['#', 'number'],
   ['Name', 'name'],
   ['Starts At', v => shortDay(v.startsAt)],
   ['Ends At', v => shortDay(v.endsAt)],
 ];
 
-const storiesColumns = [
+const storyColumns = [
   ['#', 'number'],
   ['Title', 'title'],
   ['Estimate', 'estimate'],
@@ -19,7 +19,7 @@ const storiesColumns = [
   ['Closed At', v => shortDay(v.closedAt)],
 ];
 
-const timeEntriesColumns = [
+const timeEntryColumns = [
   ['Task', 'task'],
   ['User', 'user'],
   ['Hours', 'hours'],
@@ -27,26 +27,15 @@ const timeEntriesColumns = [
   ['Reference', v => (v.reference ? `#${v.reference}` : '')],
 ];
 
-const tableRenderer = (columns, rows) => () => (
-  <Table columns={columns} rows={rows} />
-);
+const tr = (columns, rows) => () => <Table columns={columns} rows={rows} />;
 
 class Report extends React.Component {
   render() {
     const { sprints, stories, timeEntries } = this.props;
     const panes = [
-      {
-        menuItem: 'Sprints',
-        render: tableRenderer(sprintsColumns, sprints),
-      },
-      {
-        menuItem: 'Stories',
-        render: tableRenderer(storiesColumns, stories),
-      },
-      {
-        menuItem: 'Time Entries',
-        render: tableRenderer(timeEntriesColumns, timeEntries),
-      },
+      { menuItem: 'Sprints', render: tr(sprintColumns, sprints) },
+      { menuItem: 'Stories', render: tr(storyColumns, stories) },
+      { menuItem: 'Time Entries', render: tr(timeEntryColumns, timeEntries) },
     ];
     const tabMenu = { pointing: true, secondary: true };
 

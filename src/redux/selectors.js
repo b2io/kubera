@@ -10,6 +10,8 @@ const configurationSelector = state => ({
   repos: state.entities.repos,
 });
 
+const errorSelector = state => state.ui.error;
+
 const loadingSelector = state => state.ui.loading;
 
 const projectSelector = id => state =>
@@ -29,6 +31,7 @@ export {
   activeStepSelector,
   configurationSelector,
   credentialsSelector,
+  errorSelector,
   loadingSelector,
   projectSelector,
   reportSelector,

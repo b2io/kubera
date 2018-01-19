@@ -17,51 +17,52 @@ const fetchRepoReport = (repo, pagingInfo = [[true, null], [true, null]]) => {
 
   return apolloClient
     .query({
+      fetchPolicy: 'network-only',
       query: gql`
-      query RepoReportQuery($owner: String!, $name: String!) {
-        repository(owner: $owner, name: $name) {
-          ${pageableQuery(...issuesPaging)`
-            issues(first: 100, after: $cursor) {
-              pageInfo {
-                endCursor
-                hasNextPage
-              }
-              edges {
-                node {
-                  createdAt
-                  closedAt
-                  id
-                  number
-                  title
-                  labels(first: 100) {
-                    edges {
-                      node {
-                        name
+        query RepoReportQuery($owner: String!, $name: String!) {
+          repository(owner: $owner, name: $name) {
+            ${pageableQuery(...issuesPaging)`
+              issues(first: 100, after: $cursor) {
+                pageInfo {
+                  endCursor
+                  hasNextPage
+                }
+                edges {
+                  node {
+                    createdAt
+                    closedAt
+                    id
+                    number
+                    title
+                    labels(first: 100) {
+                      edges {
+                        node {
+                          name
+                        }
                       }
                     }
                   }
                 }
               }
-            }
-          `}
-          ${pageableQuery(...projectsPaging)`
-            projects(first: 100, after: $cursor) {
-              pageInfo {
-                endCursor
-                hasNextPage
-              }
-              edges {
-                node {
-                  body
-                  id
-                  name
+            `}
+            ${pageableQuery(...projectsPaging)`
+              projects(first: 100, after: $cursor) {
+                pageInfo {
+                  endCursor
+                  hasNextPage
+                }
+                edges {
+                  node {
+                    body
+                    id
+                    name
+                  }
                 }
               }
-            }
-          `}
+            `}
+          }
         }
-      }
-    `,
+      `,
       variables: { name, owner },
     })
     .then(
@@ -131,12 +132,16 @@ const resolveReport = ({ data }) => {
 };
 
 function getRepoReport(repo) {
-  return fetchRepoReport(repo).then(responses =>
-    responses.reduce(
-      (report, res) => concatMerge(report, resolveReport(res)),
-      {},
-    ),
-  );
+  return fetchRepoReport(repo)
+    .then(responses =>
+      responses.reduce(
+        (report, res) => concatMerge(report, resolveReport(res)),
+        {},
+      ),
+    )
+    .catch(() =>
+      Promise.reject('Unable to retrieve your sprints and stories.'),
+    );
 }
 
 export default getRepoReport;

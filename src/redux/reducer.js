@@ -3,6 +3,7 @@ import {
   SET_ACTIVE_STEP,
   SET_CONFIGURATION,
   SET_CREDENTIALS,
+  SET_ERROR,
   SET_LOADING,
 } from './actions';
 
@@ -14,18 +15,6 @@ function reduceReceiveEntities(state, action) {
       ...action.payload,
     },
   };
-}
-
-function reduceSetConfiguration(state, action) {
-  return { ...state, configuration: action.payload };
-}
-
-function reduceSetCredentials(state, action) {
-  return { ...state, credentials: action.payload };
-}
-
-function reduceSetLoading(state, action) {
-  return { ...state, ui: { ...state.ui, loading: action.payload } };
 }
 
 function reduceSetActiveStep(state, action) {
@@ -41,6 +30,22 @@ function reduceSetActiveStep(state, action) {
   return { ...state, ui: { ...state.ui, steps: nextSteps } };
 }
 
+function reduceSetConfiguration(state, action) {
+  return { ...state, configuration: action.payload };
+}
+
+function reduceSetCredentials(state, action) {
+  return { ...state, credentials: action.payload };
+}
+
+function reduceSetLoading(state, action) {
+  return { ...state, ui: { ...state.ui, loading: action.payload } };
+}
+
+function reduceSetError(state, action) {
+  return { ...state, ui: { ...state.ui, error: action.payload } };
+}
+
 const defaultState = {
   credentials: {},
   configuration: {},
@@ -52,6 +57,7 @@ const defaultState = {
     timeEntries: [],
   },
   ui: {
+    error: null,
     loading: false,
     steps: [
       { active: true, completed: false, disabled: false },
@@ -74,6 +80,9 @@ function reducer(state = defaultState, action) {
 
     case SET_CREDENTIALS:
       return reduceSetCredentials(state, action);
+
+    case SET_ERROR:
+      return reduceSetError(state, action);
 
     case SET_LOADING:
       return reduceSetLoading(state, action);

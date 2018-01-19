@@ -6,11 +6,6 @@ import {
 } from '../services';
 import { projectSelector, repoSelector } from './selectors';
 
-const validCredentials = credentials =>
-  ['harvestAccountId', 'harvestToken', 'gitHubToken'].every(
-    key => credentials[key],
-  );
-
 // Action Creators:
 
 const RECEIVE_ENTITIES = 'kubera/RECEIVE_ENTITIES';
@@ -37,6 +32,12 @@ const setCredentials = credentials => ({
   type: SET_CREDENTIALS,
 });
 
+const SET_ERROR = 'kubera/SET_ERROR';
+const setError = error => ({
+  payload: error,
+  type: SET_ERROR,
+});
+
 const SET_LOADING = 'kubera/SET_LOADING';
 const setLoading = isLoading => ({
   payload: isLoading,
@@ -47,16 +48,20 @@ const setLoading = isLoading => ({
 
 const saveCredentials = credentials => (dispatch, getState) => {
   dispatch(setLoading(true));
+  dispatch(setError(null));
   dispatch(setCredentials(credentials));
   dispatch(clearConfiguration());
 
-  if (validCredentials(credentials)) {
-    Promise.all([getProjects(), getRepos()]).then(([projects, repos]) => {
+  Promise.all([getProjects(), getRepos()])
+    .then(([projects, repos]) => {
       dispatch(receiveEntities({ projects, repos }));
       dispatch(setActiveStep(1, true));
       dispatch(setLoading(false));
+    })
+    .catch(error => {
+      dispatch(setError(error));
+      dispatch(setLoading(false));
     });
-  }
 };
 
 const saveConfiguration = configuration => (dispatch, getState) => {
@@ -65,11 +70,12 @@ const saveConfiguration = configuration => (dispatch, getState) => {
   const repo = repoSelector(configuration.repo)(state);
 
   dispatch(setLoading(true));
+  dispatch(setError(null));
   dispatch(setConfiguration(configuration));
   dispatch(clearReport());
 
-  Promise.all([getProjectReport(project), getRepoReport(repo)]).then(
-    ([projectReport, repoReport]) => {
+  Promise.all([getProjectReport(project), getRepoReport(repo)])
+    .then(([projectReport, repoReport]) => {
       dispatch(
         receiveEntities({
           sprints: repoReport.sprints,
@@ -79,8 +85,11 @@ const saveConfiguration = configuration => (dispatch, getState) => {
       );
       dispatch(setActiveStep(2, true));
       dispatch(setLoading(false));
-    },
-  );
+    })
+    .catch(error => {
+      dispatch(setError(error));
+      dispatch(setLoading(false));
+    });
 };
 
 const clearConfiguration = () => dispatch => {
@@ -104,6 +113,8 @@ export {
   setActiveStep,
   SET_LOADING,
   setLoading,
+  SET_ERROR,
+  setError,
   saveCredentials,
   saveConfiguration,
   clearConfiguration,

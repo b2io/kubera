@@ -34,24 +34,26 @@ function getProjectReport(project) {
     store.getState(),
   );
 
-  return fetchProjectReportPage(
-    project,
-    harvestToken,
-    harvestAccountId,
-    1,
-  ).then(res =>
-    Promise.all([
-      res,
-      ...times(res.total_pages - 1, n =>
-        fetchProjectReportPage(project, harvestToken, harvestAccountId, n + 2),
-      ),
-    ]).then(responses => ({
-      timeEntries: sortBy(
-        flatMap(responses, res => res.time_entries.map(resolveTimeEntry)),
-        'recordedAt',
-      ),
-    })),
-  );
+  return fetchProjectReportPage(project, harvestToken, harvestAccountId, 1)
+    .then(res =>
+      Promise.all([
+        res,
+        ...times(res.total_pages - 1, n =>
+          fetchProjectReportPage(
+            project,
+            harvestToken,
+            harvestAccountId,
+            n + 2,
+          ),
+        ),
+      ]).then(responses => ({
+        timeEntries: sortBy(
+          flatMap(responses, res => res.time_entries.map(resolveTimeEntry)),
+          'recordedAt',
+        ),
+      })),
+    )
+    .catch(() => Promise.reject('Unable to retrieve your time entries.'));
 }
 
 export default getProjectReport;

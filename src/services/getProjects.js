@@ -19,19 +19,21 @@ function getProjects(page = 1) {
     store.getState(),
   );
 
-  return fetchProjectsPage(harvestToken, harvestAccountId, 1).then(res =>
-    Promise.all([
-      res,
-      ...times(res.total_pages - 1, n =>
-        fetchProjectsPage(harvestToken, harvestAccountId, n + 2),
+  return fetchProjectsPage(harvestToken, harvestAccountId, 1)
+    .then(res =>
+      Promise.all([
+        res,
+        ...times(res.total_pages - 1, n =>
+          fetchProjectsPage(harvestToken, harvestAccountId, n + 2),
+        ),
+      ]).then(responses =>
+        sortBy(
+          flatMap(responses, res => res.projects.map(resolveProject)),
+          'name',
+        ),
       ),
-    ]).then(responses =>
-      sortBy(
-        flatMap(responses, res => res.projects.map(resolveProject)),
-        'name',
-      ),
-    ),
-  );
+    )
+    .catch(() => Promise.reject('Unable to retrieve your projects.'));
 }
 
 export default getProjects;

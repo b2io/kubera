@@ -51,7 +51,10 @@ const resolveRepos = ({ data }) => {
 };
 
 function getRepos() {
-  return apolloClient.query({ query }).then(resolveRepos);
+  return apolloClient
+    .query({ query, fetchPolicy: 'network-only' })
+    .then(resolveRepos)
+    .catch(() => Promise.reject('Unable to retrieve your repos.'));
 }
 
 export default getRepos;
