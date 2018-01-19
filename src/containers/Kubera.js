@@ -1,3 +1,4 @@
+import { invoke } from 'lodash';
 import React from 'react';
 import { connect } from 'react-redux';
 import {
@@ -47,9 +48,7 @@ class Kubera extends React.Component {
       stepsConfig,
     } = this.props;
     const containerStyles = { padding: '2em 0' };
-
-    // TODO: Show the appropriate content for each step.
-    const content = [
+    const stepContentRenderers = [
       () => <CredentialsForm {...credentials} onSave={onSaveCredentials} />,
       () => (
         <ConfigurationForm {...configuration} onSave={onSaveConfiguration} />
@@ -59,6 +58,9 @@ class Kubera extends React.Component {
 
     return (
       <Container style={containerStyles} text>
+        <Dimmer active={loading} inverted>
+          <Loader indeterminate />
+        </Dimmer>
         <Header size="huge">Kubera</Header>
         {error && (
           <Message negative>
@@ -82,10 +84,7 @@ class Kubera extends React.Component {
             ))}
           </Step.Group>
           <Segment attached clearing>
-            <Dimmer active={loading} inverted>
-              <Loader indeterminate />
-            </Dimmer>
-            {content[activeStep]()}
+            {invoke(stepContentRenderers, activeStep)}
           </Segment>
         </div>
       </Container>
