@@ -7,8 +7,10 @@ import {
   VictoryChart,
   VictoryLine,
   VictoryScatter,
+  VictoryTooltip,
 } from 'victory';
 import analyzeBurndown from '../services/analyzeBurndown';
+import { shortDay } from '../util';
 
 const lineStyles = (color, dashed) => ({
   data: { stroke: color, strokeDasharray: dashed ? '4, 2' : null },
@@ -17,6 +19,9 @@ const lineStyles = (color, dashed) => ({
 const scatterStyles = (color, solid) => ({
   data: { fill: solid ? color : 'white', stroke: color, strokeWidth: 1 },
 });
+
+const scatterLabel = d =>
+  [`${shortDay(d.date)}:`, `${d.open} open`, `${d.closed} closed`].join('\n');
 
 const hasDateInData = data => t => data.some(d => d.date === t);
 
@@ -45,7 +50,7 @@ class BurndownChart extends React.Component {
     const nonProjectedData = actualData.concat(plannedData);
     const { date: startDate } = first(data);
     const { date: endDate, total: maxTotal } = last(data);
-    const domainPadding = { y: 1 };
+    const domainPadding = { y: 10 };
     const domainX = [startDate, endDate];
     const domainY = [0, maxTotal];
     const ticksX = {
@@ -68,12 +73,13 @@ class BurndownChart extends React.Component {
         <VictoryChart domainPadding={domainPadding}>
           <VictoryAxis
             domain={domainX}
+            label="Sprint #"
             scale="time"
             style={stylesX}
             tickFormat={ticksX.format}
             tickValues={ticksX.values}
           />
-          <VictoryAxis dependentAxis domain={domainY} />
+          <VictoryAxis dependentAxis domain={domainY} label="Story Points" />
           <VictoryLine
             data={data}
             style={lineStyles('gray')}
@@ -88,6 +94,8 @@ class BurndownChart extends React.Component {
           />
           <VictoryScatter
             data={data}
+            labelComponent={<VictoryTooltip />}
+            labels={scatterLabel}
             style={scatterStyles('silver')}
             x="date"
             y="open"
@@ -100,6 +108,8 @@ class BurndownChart extends React.Component {
           />
           <VictoryScatter
             data={nonProjectedData}
+            labelComponent={<VictoryTooltip />}
+            labels={scatterLabel}
             style={scatterStyles('lightSlateGray')}
             x="date"
             y="open"
@@ -112,6 +122,8 @@ class BurndownChart extends React.Component {
           />
           <VictoryScatter
             data={actualData}
+            labelComponent={<VictoryTooltip />}
+            labels={scatterLabel}
             style={scatterStyles('darkSlateGray', true)}
             x="date"
             y="open"
