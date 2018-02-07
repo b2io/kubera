@@ -1,4 +1,11 @@
-import { format, isBefore, isEqual, isWeekend, startOfDay } from 'date-fns';
+import {
+  format,
+  isBefore,
+  isEqual,
+  isWeekend,
+  isWithinRange,
+  startOfDay,
+} from 'date-fns';
 import {
   get,
   isArray,
@@ -58,9 +65,11 @@ const isEqualDay = alignToDay(isEqual);
 
 const isBeforeOrEqualDay = overSome(isBeforeDay, isEqualDay);
 
+const isWithinDayRange = alignToDay(isWithinRange);
+
 const isWeekday = negate(isWeekend);
 
-const shortDay = d => format(d, 'YYYY-MM-DD');
+const shortDay = d => isNil(d) ? '' : format(d, 'YYYY-MM-DD');
 
 export {
   concatMerge,
@@ -69,6 +78,7 @@ export {
   isBeforeOrEqualDay,
   isEqualDay,
   isWeekday,
+  isWithinDayRange,
   maxValueBy,
   minValueBy,
   pageableQuery,

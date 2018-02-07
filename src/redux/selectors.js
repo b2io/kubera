@@ -1,9 +1,9 @@
-import { isWithinRange } from 'date-fns';
 import { find } from 'lodash';
+import { isWithinDayRange } from '../util';
 
 const getVelocity = (stories, sprint) =>
   stories.reduce((result, story) => {
-    if (isWithinRange(story.closedAt, sprint.startsAt, sprint.endsAt)) {
+    if (isWithinDayRange(story.closedAt, sprint.startsAt, sprint.endsAt)) {
       return result + story.estimate;
     }
 
@@ -12,7 +12,7 @@ const getVelocity = (stories, sprint) =>
 
 const getSprint = (sprints, story) => {
   const storySprint = find(sprints, sprint =>
-    isWithinRange(story.closedAt, sprint.startsAt, sprint.endsAt),
+    isWithinDayRange(story.closedAt, sprint.startsAt, sprint.endsAt),
   );
 
   return storySprint ? storySprint.number : 'None';
