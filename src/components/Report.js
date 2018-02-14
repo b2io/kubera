@@ -17,6 +17,7 @@ const storyColumns = [
   ['Estimate', 'estimate'],
   ['Opened At', v => shortDay(v.openedAt)],
   ['Closed At', v => shortDay(v.closedAt)],
+  ['Time Tracked', 'trackedHours'],
 ];
 
 const timeEntryColumns = [
