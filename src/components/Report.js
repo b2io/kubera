@@ -19,6 +19,7 @@ const storyColumns = [
   ['Sprint', 'sprint'],
   ['Opened At', v => shortDay(v.openedAt)],
   ['Closed At', v => shortDay(v.closedAt)],
+  ['Time Tracked', 'trackedHours'],
 ];
 
 const timeEntryColumns = [

@@ -1,4 +1,4 @@
-import { find } from 'lodash';
+import { find, get } from 'lodash';
 import { isWithinDayRange } from '../util';
 
 const getVelocity = (stories, sprint) =>
@@ -17,6 +17,14 @@ const getSprint = (sprints, story) => {
 
   return storySprint ? storySprint.number : 'None';
 };
+
+const hoursByStoryIdSelector = state =>
+  state.entities.timeEntries.reduce((result, entry) => {
+    const storyId = parseInt(entry.reference, 10);
+    const storyHours = result[storyId] || 0;
+
+    return { ...result, [storyId]: storyHours + entry.hours };
+  }, {});
 
 const activeStepSelector = state =>
   Math.max(state.ui.steps.findIndex(s => s.active), 0);
@@ -37,17 +45,22 @@ const loadingSelector = state => state.ui.loading;
 const projectSelector = id => state =>
   state.entities.projects.find(p => p.id === id);
 
-const reportSelector = state => ({
-  sprints: state.entities.sprints.map(sprint => ({
-    ...sprint,
-    velocity: getVelocity(state.entities.stories, sprint),
-  })),
-  stories: state.entities.stories.map(story => ({
-    ...story,
-    sprint: getSprint(state.entities.sprints, story),
-  })),
-  timeEntries: state.entities.timeEntries,
-});
+const reportSelector = state => {
+  const hoursByStoryId = hoursByStoryIdSelector(state);
+
+  return {
+    sprints: state.entities.sprints.map(sprint => ({
+      ...sprint,
+      velocity: getVelocity(state.entities.stories, sprint),
+    })),
+    stories: state.entities.stories.map(story => ({
+      ...story,
+      sprint: getSprint(state.entities.sprints, story),
+      trackedHours: get(hoursByStoryId, story.number, 0),
+    })),
+    timeEntries: state.entities.timeEntries,
+  };
+};
 
 const repoSelector = id => state => state.entities.repos.find(r => r.id === id);
 
