@@ -1,4 +1,30 @@
-import { get, isEmpty } from 'lodash';
+import { find, get } from 'lodash';
+import { isWithinDayRange } from '../util';
+
+const getVelocity = (stories, sprint) =>
+  stories.reduce((result, story) => {
+    if (isWithinDayRange(story.closedAt, sprint.startsAt, sprint.endsAt)) {
+      return result + story.estimate;
+    }
+
+    return result;
+  }, 0);
+
+const getSprint = (sprints, story) => {
+  const storySprint = find(sprints, sprint =>
+    isWithinDayRange(story.closedAt, sprint.startsAt, sprint.endsAt),
+  );
+
+  return storySprint ? storySprint.number : 'None';
+};
+
+const hoursByStoryIdSelector = state =>
+  state.entities.timeEntries.reduce((result, entry) => {
+    const storyId = parseInt(entry.reference, 10);
+    const storyHours = result[storyId] || 0;
+
+    return { ...result, [storyId]: storyHours + entry.hours };
+  }, {});
 
 const activeStepSelector = state =>
   Math.max(state.ui.steps.findIndex(s => s.active), 0);
@@ -20,34 +46,18 @@ const projectSelector = id => state =>
   state.entities.projects.find(p => p.id === id);
 
 const reportSelector = state => {
-  let stories = state.entities.stories;
-
-  if (
-    !isEmpty(state.entities.timeEntries) &&
-    !isEmpty(state.entities.stories)
-  ) {
-    const hoursByStoryId = state.entities.timeEntries.reduce(
-      (accumulator, entry) => {
-        if (entry.reference) {
-          const storyId = parseInt(entry.reference, 10);
-          const storyHours = accumulator[storyId] || 0;
-          accumulator[storyId] = storyHours + entry.hours;
-        }
-
-        return accumulator;
-      },
-      {},
-    );
-
-    stories = state.entities.stories.map(story => ({
-      ...story,
-      trackedHours: get(hoursByStoryId, story.number, 0),
-    }));
-  }
+  const hoursByStoryId = hoursByStoryIdSelector(state);
 
   return {
-    sprints: state.entities.sprints,
-    stories,
+    sprints: state.entities.sprints.map(sprint => ({
+      ...sprint,
+      velocity: getVelocity(state.entities.stories, sprint),
+    })),
+    stories: state.entities.stories.map(story => ({
+      ...story,
+      sprint: getSprint(state.entities.sprints, story),
+      trackedHours: get(hoursByStoryId, story.number, 0),
+    })),
     timeEntries: state.entities.timeEntries,
   };
 };

@@ -7,6 +7,7 @@ import Table from './Table';
 const sprintColumns = [
   ['#', 'number'],
   ['Name', 'name'],
+  ['Velocity', 'velocity'],
   ['Starts At', v => shortDay(v.startsAt)],
   ['Ends At', v => shortDay(v.endsAt)],
 ];
@@ -15,6 +16,7 @@ const storyColumns = [
   ['#', 'number'],
   ['Title', 'title'],
   ['Estimate', 'estimate'],
+  ['Sprint', 'sprint'],
   ['Opened At', v => shortDay(v.openedAt)],
   ['Closed At', v => shortDay(v.closedAt)],
   ['Time Tracked', 'trackedHours'],
