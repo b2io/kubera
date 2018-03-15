@@ -5,7 +5,7 @@ import {
   format,
   parse,
 } from 'date-fns';
-import { difference, find, isEmpty, last, sumBy, times } from 'lodash';
+import { difference, find, first, isEmpty, last, sumBy, times } from 'lodash';
 import {
   isBeforeDay,
   isAfterDay,
@@ -103,11 +103,19 @@ function analyzeBurndown(sprints, stories, asOf) {
 
   if (isEmpty(actualSprints)) return resolveError('No sprints have ended.');
 
+  const firstActualSprint = first(actualSprints);
+  const relevantStories = stories.filter(
+    story =>
+      !story.closedAt ||
+      isBeforeOrEqualDay(firstActualSprint.startsAt, story.closedAt),
+  );
   const lastActualSprint = last(actualSprints);
   const actualData = [
-    resolveActualData(actualSprints[0], stories, asOf, 'startsAt'),
+    resolveActualData(firstActualSprint, relevantStories, asOf, 'startsAt'),
   ].concat(
-    actualSprints.map(sprint => resolveActualData(sprint, stories, asOf)),
+    actualSprints.map(sprint =>
+      resolveActualData(sprint, relevantStories, asOf),
+    ),
   );
   const lastActualData = last(actualData);
   const actualWorkedDays = workingDays(...actualSprints);
@@ -122,7 +130,7 @@ function analyzeBurndown(sprints, stories, asOf) {
   const plannedData = plannedSprints.map((sprint, i) =>
     resolveFutureData(
       sprint,
-      stories,
+      relevantStories,
       i,
       lastActualData,
       actualPointsPerWorkedDay,
@@ -145,7 +153,7 @@ function analyzeBurndown(sprints, stories, asOf) {
   const projectedData = projectedSprints.map((sprint, i) =>
     resolveFutureData(
       sprint,
-      stories,
+      relevantStories,
       i,
       projectionData,
       actualPointsPerWorkedDay,
