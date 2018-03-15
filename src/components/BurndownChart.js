@@ -2,13 +2,11 @@ import { format } from 'date-fns';
 import { cond, constant, first, last } from 'lodash';
 import React from 'react';
 import { Message } from 'semantic-ui-react';
-import {
-  VictoryAxis,
-  VictoryChart,
-  VictoryLine,
-  VictoryScatter,
-  VictoryTooltip,
-} from 'victory';
+import VictoryAxis from 'victory-chart/es/components/victory-axis/victory-axis';
+import VictoryChart from 'victory-chart/es/components/victory-chart/victory-chart';
+import VictoryLine from 'victory-chart/es/components/victory-line/victory-line';
+import VictoryScatter from 'victory-chart/es/components/victory-scatter/victory-scatter';
+import VictoryTooltip from 'victory-core/es/victory-tooltip/victory-tooltip';
 import analyzeBurndown from '../services/analyzeBurndown';
 import { shortDay } from '../util';
 
