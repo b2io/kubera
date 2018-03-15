@@ -4,7 +4,6 @@ import { Provider } from 'react-redux';
 import 'semantic-ui-css/semantic.min.css';
 import Kubera from './containers/Kubera';
 import configureStore from './redux';
-import registerServiceWorker from './registerServiceWorker';
 
 const store = configureStore();
 
@@ -14,5 +13,3 @@ ReactDOM.render(
   </Provider>,
   document.getElementById('root'),
 );
-
-registerServiceWorker();
