@@ -1,5 +1,5 @@
 import { flatMap, sortBy, times } from 'lodash';
-import { readStoredCredentials } from '../util';
+import readStoredCredentials from './readStoredCredentials';
 
 const resolveProject = project => ({
   id: project.id,

@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 import { flatMap, sortBy, times } from 'lodash';
-import { readStoredCredentials } from '../util';
+import readStoredCredentials from './readStoredCredentials';
 
 const resolveReference = extRef =>
   extRef && extRef.service === 'github.com' ? extRef.id : null;
