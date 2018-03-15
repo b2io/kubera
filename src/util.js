@@ -18,6 +18,7 @@ import {
   rearg,
   zip,
 } from 'lodash';
+import { credentialsSelector, getStoredState } from './redux';
 
 const roundUpToNearest = (n, toValue) => Math.ceil(n / toValue) * toValue;
 
@@ -71,6 +72,8 @@ const isWeekday = negate(isWeekend);
 
 const shortDay = d => isNil(d) ? '' : format(d, 'YYYY-MM-DD');
 
+const readStoredCredentials = () => credentialsSelector(getStoredState());
+
 export {
   concatMerge,
   isAfterDay,
@@ -82,6 +85,7 @@ export {
   maxValueBy,
   minValueBy,
   pageableQuery,
+  readStoredCredentials,
   resolveCursors,
   roundUpToNearest,
   shortDay,

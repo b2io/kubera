@@ -2,7 +2,7 @@ import { InMemoryCache } from 'apollo-cache-inmemory';
 import { ApolloClient } from 'apollo-client';
 import { setContext } from 'apollo-link-context';
 import { HttpLink } from 'apollo-link-http';
-import { readStoredCredentials } from './util';
+import { readStoredCredentials } from '../util';
 
 const httpLink = new HttpLink({ uri: 'https://api.github.com/graphql' });
 

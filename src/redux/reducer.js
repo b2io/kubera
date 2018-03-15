@@ -1,52 +1,14 @@
+import { handleActions } from 'redux-actions';
 import {
-  RECEIVE_ENTITIES,
-  SET_ACTIVE_STEP,
-  SET_CONFIGURATION,
-  SET_CREDENTIALS,
-  SET_ERROR,
-  SET_LOADING,
+  receiveEntities,
+  setActiveStep,
+  setConfiguration,
+  setCredentials,
+  setError,
+  setLoading,
 } from './actions';
 
-function reduceReceiveEntities(state, action) {
-  return {
-    ...state,
-    entities: {
-      ...state.entities,
-      ...action.payload,
-    },
-  };
-}
-
-function reduceSetActiveStep(state, action) {
-  const { number, shouldForce } = action.payload;
-  const nextSteps = state.ui.steps.map((step, i) => {
-    if (!shouldForce) return { ...step, active: i === number };
-    if (i === number) return { active: true, disabled: false };
-    if (i > number) return { active: false, disabled: true };
-
-    return { active: false, completed: true, disabled: false };
-  });
-
-  return { ...state, ui: { ...state.ui, steps: nextSteps } };
-}
-
-function reduceSetConfiguration(state, action) {
-  return { ...state, configuration: action.payload };
-}
-
-function reduceSetCredentials(state, action) {
-  return { ...state, credentials: action.payload };
-}
-
-function reduceSetLoading(state, action) {
-  return { ...state, ui: { ...state.ui, loading: action.payload } };
-}
-
-function reduceSetError(state, action) {
-  return { ...state, ui: { ...state.ui, error: action.payload } };
-}
-
-const defaultState = {
+const initialState = {
   credentials: {},
   configuration: {},
   entities: {
@@ -67,29 +29,50 @@ const defaultState = {
   },
 };
 
-function reducer(state = defaultState, action) {
-  switch (action.type) {
-    case RECEIVE_ENTITIES:
-      return reduceReceiveEntities(state, action);
+const reducer = handleActions(
+  {
+    [receiveEntities]: (state, action) => ({
+      ...state,
+      entities: {
+        ...state.entities,
+        ...action.payload,
+      },
+    }),
 
-    case SET_ACTIVE_STEP:
-      return reduceSetActiveStep(state, action);
+    [setActiveStep]: (state, action) => {
+      const { number, shouldForce } = action.payload;
+      const nextSteps = state.ui.steps.map((step, i) => {
+        if (!shouldForce) return { ...step, active: i === number };
+        if (i === number) return { active: true, disabled: false };
+        if (i > number) return { active: false, disabled: true };
 
-    case SET_CONFIGURATION:
-      return reduceSetConfiguration(state, action);
+        return { active: false, completed: true, disabled: false };
+      });
 
-    case SET_CREDENTIALS:
-      return reduceSetCredentials(state, action);
+      return { ...state, ui: { ...state.ui, steps: nextSteps } };
+    },
 
-    case SET_ERROR:
-      return reduceSetError(state, action);
+    [setConfiguration]: (state, action) => ({
+      ...state,
+      configuration: action.payload,
+    }),
 
-    case SET_LOADING:
-      return reduceSetLoading(state, action);
+    [setCredentials]: (state, action) => ({
+      ...state,
+      credentials: action.payload,
+    }),
 
-    default:
-      return state;
-  }
-}
+    [setError]: (state, action) => ({
+      ...state,
+      ui: { ...state.ui, error: action.payload },
+    }),
+
+    [setLoading]: (state, action) => ({
+      ...state,
+      ui: { ...state.ui, loading: action.payload },
+    }),
+  },
+  initialState,
+);
 
 export default reducer;

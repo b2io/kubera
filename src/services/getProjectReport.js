@@ -1,8 +1,6 @@
-import format from 'date-fns/format';
-import flatMap from 'lodash/flatMap';
-import sortBy from 'lodash/sortBy';
-import times from 'lodash/times';
-import { readStoredCredentials } from './util';
+import { format } from 'date-fns';
+import { flatMap, sortBy, times } from 'lodash';
+import { readStoredCredentials } from '../util';
 
 const resolveReference = extRef =>
   extRef && extRef.service === 'github.com' ? extRef.id : null;
