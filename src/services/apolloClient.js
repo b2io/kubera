@@ -2,12 +2,12 @@ import { InMemoryCache } from 'apollo-cache-inmemory';
 import { ApolloClient } from 'apollo-client';
 import { setContext } from 'apollo-link-context';
 import { HttpLink } from 'apollo-link-http';
-import store, { credentialsSelector } from '../redux';
+import readStoredCredentials from './readStoredCredentials';
 
 const httpLink = new HttpLink({ uri: 'https://api.github.com/graphql' });
 
 const withAuthorization = setContext((request, previousContext) => {
-  const { gitHubToken } = credentialsSelector(store.getState());
+  const { gitHubToken } = readStoredCredentials();
 
   return {
     headers: {

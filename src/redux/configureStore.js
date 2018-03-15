@@ -6,10 +6,12 @@ import createEngine from 'redux-storage-engine-localstorage';
 import ReduxThunk from 'redux-thunk';
 import reducer from './reducer';
 
+const STORAGE_KEY = 'kubera';
+
 function configureStore() {
   const rootReducer = storage.reducer(reducer);
   const storageEngine = filter(
-    createEngine('kubera'),
+    createEngine(STORAGE_KEY),
     [],
     [['ui', 'error'], ['ui', 'loading']],
   );
@@ -26,4 +28,13 @@ function configureStore() {
   return store;
 }
 
+function getStoredState() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY));
+  } catch (e) {
+    return {};
+  }
+}
+
 export default configureStore;
+export { getStoredState };

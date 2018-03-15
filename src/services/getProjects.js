@@ -1,5 +1,5 @@
 import { flatMap, sortBy, times } from 'lodash';
-import store, { credentialsSelector } from '../redux';
+import readStoredCredentials from './readStoredCredentials';
 
 const resolveProject = project => ({
   id: project.id,
@@ -15,9 +15,7 @@ const fetchProjectsPage = (token, accountId, page) =>
   }).then(res => res.json());
 
 function getProjects(page = 1) {
-  const { harvestAccountId, harvestToken } = credentialsSelector(
-    store.getState(),
-  );
+  const { harvestAccountId, harvestToken } = readStoredCredentials();
 
   return fetchProjectsPage(harvestToken, harvestAccountId, 1)
     .then(res =>

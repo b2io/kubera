@@ -1,8 +1,6 @@
-import format from 'date-fns/format';
-import flatMap from 'lodash/flatMap';
-import sortBy from 'lodash/sortBy';
-import times from 'lodash/times';
-import store, { credentialsSelector } from '../redux';
+import { format } from 'date-fns';
+import { flatMap, sortBy, times } from 'lodash';
+import readStoredCredentials from './readStoredCredentials';
 
 const resolveReference = extRef =>
   extRef && extRef.service === 'github.com' ? extRef.id : null;
@@ -30,9 +28,7 @@ const fetchProjectReportPage = (project, token, accountId, page) =>
   ).then(res => res.json());
 
 function getProjectReport(project) {
-  const { harvestAccountId, harvestToken } = credentialsSelector(
-    store.getState(),
-  );
+  const { harvestAccountId, harvestToken } = readStoredCredentials();
 
   return fetchProjectReportPage(project, harvestToken, harvestAccountId, 1)
     .then(res =>
