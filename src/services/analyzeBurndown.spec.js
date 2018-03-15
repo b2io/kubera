@@ -140,16 +140,19 @@ test('handles stories that close in the gap between sprints', () => {
   });
 });
 
-test('handles stories closed before the first sprint', () => {
+test('ignores stories closed before the first sprint', () => {
   const sprints = [buildSprint(1, '2018-01-01', '2018-01-12')];
-  const stories = [buildStory(1, 5, '2017-12-29', '2017-12-29')];
+  const stories = [
+    buildStory(1, 2, '2017-12-29', '2017-12-29'),
+    buildStory(2, 5, '2017-12-29', '2018-01-02'),
+  ];
   const asOf = format('2018-01-13');
 
   const analysis = analyzeBurndown(sprints, stories, asOf);
 
   expect(analysis).toEqual({
     data: [
-      buildData('2018-01-01', 0, 5, 'actual'),
+      buildData('2018-01-01', 5, 0, 'actual'),
       buildData('2018-01-12', 0, 5, 'actual'),
     ],
     error: null,
@@ -233,9 +236,7 @@ test('flags an error when sprints overlap', () => {
 });
 
 test('flags an error when no sprints have ended', () => {
-  const sprints = [
-    buildSprint(1, '2018-01-01', '2018-01-12'),
-  ];
+  const sprints = [buildSprint(1, '2018-01-01', '2018-01-12')];
   const stories = [buildStory(1, 2, '2017-12-29', '2018-01-05')];
   const asOf = format('2018-01-12');
 
