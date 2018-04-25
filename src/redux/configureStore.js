@@ -4,7 +4,7 @@ import * as storage from 'redux-storage';
 import filter from 'redux-storage-decorator-filter';
 import createEngine from 'redux-storage-engine-localstorage';
 import ReduxThunk from 'redux-thunk';
-import { applyMiddlewareWithBatching } from './batchActions';
+import { applyMiddlewareWithBatching } from '../redux-batch';
 import reducer from './reducer';
 
 const STORAGE_KEY = 'kubera';

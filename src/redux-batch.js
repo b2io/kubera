@@ -1,20 +1,15 @@
 import { applyMiddleware, compose } from 'redux';
 
-const applyMiddlewareWithBatching = (...middleware) => {
+const applyMiddlewareWithBatching = (...otherMiddleware) => {
   let isBatching = false;
   let handleBatch = () => {
     throw new Error('Dispatching during store creation is not allowed.');
   };
 
-  const ReduxBatch = store => next => action => {
-    if (Array.isArray(action)) {
-      return handleBatch(action);
-    }
+  const middleware = store => next => action =>
+    Array.isArray(action) ? handleBatch(action) : next(action);
 
-    return next(action);
-  };
-
-  const enableBatching = () => createStore => (...args) => {
+  const enhancer = createStore => (...args) => {
     const store = createStore(...args);
     const origSubscribe = store.subscribe;
 
@@ -33,15 +28,13 @@ const applyMiddlewareWithBatching = (...middleware) => {
 
     const subscribe = listener =>
       origSubscribe(() => {
-        if (isBatching) return;
-
-        listener();
+        if (!isBatching) listener();
       });
 
     return { ...store, subscribe };
   };
 
-  return compose(enableBatching(), applyMiddleware(ReduxBatch, ...middleware));
+  return compose(enhancer, applyMiddleware(middleware, ...otherMiddleware));
 };
 
 export { applyMiddlewareWithBatching };
