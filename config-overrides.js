@@ -3,7 +3,7 @@ const { injectBabelPlugin } = require('react-app-rewired');
 const rewireBabelPlugin = (plugin, options = {}) => (
   config,
   env,
-  injectedOptions = options,
+  injectedOptions = options
 ) => injectBabelPlugin([plugin, injectedOptions], config);
 
 const flowRewires = (...wirings) => (config, env) =>
@@ -16,5 +16,5 @@ const flowRewires = (...wirings) => (config, env) =>
 module.exports = flowRewires(
   rewireBabelPlugin('lodash'),
   rewireBabelPlugin('date-fns'),
-  rewireBabelPlugin('transform-semantic-ui-react-imports'),
+  rewireBabelPlugin('transform-semantic-ui-react-imports')
 );

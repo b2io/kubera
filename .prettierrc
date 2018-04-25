@@ -1,5 +1,13 @@
 {
-    "printWidth": 80,
-    "singleQuote": true,
-    "trailingComma": "all"
+  "printWidth": 80,
+  "singleQuote": true,
+  "trailingComma": "all",
+  "overrides": [
+    {
+      "files": ["config-overrides.js"],
+      "options": {
+        "trailingComma": "es5"
+      }
+    }
+  ]
 }

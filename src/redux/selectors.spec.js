@@ -183,13 +183,13 @@ describe('reportSelector', () => {
           timeEntries: [
             {
               hours: 0.25,
-              reference: '1'
+              reference: '1',
             },
             {
               hours: 0.5,
-              reference: '2'
+              reference: '2',
             },
-          ]
+          ],
         }),
       ],
       reducer,
