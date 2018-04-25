@@ -69,7 +69,7 @@ const isWithinDayRange = alignToDay(isWithinRange);
 
 const isWeekday = negate(isWeekend);
 
-const shortDay = d => isNil(d) ? '' : format(d, 'YYYY-MM-DD');
+const shortDay = d => (isNil(d) ? '' : format(d, 'YYYY-MM-DD'));
 
 export {
   concatMerge,

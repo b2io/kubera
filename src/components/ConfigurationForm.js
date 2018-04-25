@@ -72,11 +72,7 @@ class ConfigurationForm extends React.Component {
           selection
           value={project}
         />
-        <Form.Button
-          disabled={!isValid}
-          onClick={this.handleSave}
-          positive
-        >
+        <Form.Button disabled={!isValid} onClick={this.handleSave} positive>
           Save Configuration
         </Form.Button>
       </Form>

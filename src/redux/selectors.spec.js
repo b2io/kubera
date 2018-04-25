@@ -11,7 +11,20 @@ describe('reportSelector', () => {
 
     const report = reportSelector(state);
 
-    expect(report).toEqual({ sprints: [], stories: [], timeEntries: [] });
+    expect(report).toEqual({
+      receivedAt: 0,
+      sprints: [],
+      stories: [],
+      timeEntries: [],
+    });
+  });
+
+  test('should include received-at time', () => {
+    const state = reduceActions([receiveEntities({}, 1234)], reducer);
+
+    const report = reportSelector(state);
+
+    expect(report.receivedAt).toEqual(1234);
   });
 
   test('should include all received sprints', () => {
@@ -183,13 +196,13 @@ describe('reportSelector', () => {
           timeEntries: [
             {
               hours: 0.25,
-              reference: '1'
+              reference: '1',
             },
             {
               hours: 0.5,
-              reference: '2'
+              reference: '2',
             },
-          ]
+          ],
         }),
       ],
       reducer,

@@ -16,6 +16,7 @@ import {
   configurationSelector,
   credentialsSelector,
   loadingSelector,
+  refreshReport,
   reportSelector,
   saveConfiguration,
   saveCredentials,
@@ -42,6 +43,7 @@ class Kubera extends React.Component {
       credentials,
       error,
       loading,
+      onRefreshReport,
       onSaveConfiguration,
       onSaveCredentials,
       report,
@@ -53,7 +55,7 @@ class Kubera extends React.Component {
       () => (
         <ConfigurationForm {...configuration} onSave={onSaveConfiguration} />
       ),
-      () => <Report {...report} />,
+      () => <Report {...report} onRefresh={onRefreshReport} />,
     ];
 
     return (
@@ -105,6 +107,7 @@ function mapStateToProps(state) {
 }
 
 const mapDispatchToProps = {
+  onRefreshReport: refreshReport,
   onStepChange: setActiveStep,
   onSaveConfiguration: saveConfiguration,
   onSaveCredentials: saveCredentials,

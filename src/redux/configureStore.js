@@ -1,9 +1,10 @@
-import { applyMiddleware, createStore } from 'redux';
+import { createStore } from 'redux';
 import { composeWithDevTools } from 'redux-devtools-extension';
 import * as storage from 'redux-storage';
 import filter from 'redux-storage-decorator-filter';
 import createEngine from 'redux-storage-engine-localstorage';
 import ReduxThunk from 'redux-thunk';
+import { applyMiddlewareWithBatching } from '../redux-batch';
 import reducer from './reducer';
 
 const STORAGE_KEY = 'kubera';
@@ -20,7 +21,9 @@ function configureStore() {
 
   const store = createStore(
     rootReducer,
-    composeWithDevTools(applyMiddleware(ReduxThunk, storageMiddleware)),
+    composeWithDevTools(
+      applyMiddlewareWithBatching(ReduxThunk, storageMiddleware),
+    ),
   );
 
   storageLoader(store);
