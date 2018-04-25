@@ -21,8 +21,11 @@ const applyMiddlewareWithBatching = (...otherMiddleware) => {
 
           store.dispatch(action);
         });
-      } finally {
+      } catch (error) {
         isBatching = false;
+        store.dispatch({ type: '@@BATCH_FAILED' });
+
+        throw error;
       }
     };
 
