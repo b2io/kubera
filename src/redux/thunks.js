@@ -1,4 +1,10 @@
 import {
+  getProjectReport,
+  getProjects,
+  getRepoReport,
+  getRepos,
+} from '../services';
+import {
   receiveEntities,
   setActiveStep,
   setCredentials,
@@ -7,28 +13,25 @@ import {
   setLoading,
 } from './actions';
 import { projectSelector, repoSelector } from './selectors';
-import {
-  getProjectReport,
-  getProjects,
-  getRepoReport,
-  getRepos,
-} from '../services';
 
 const saveCredentials = credentials => (dispatch, getState) => {
-  dispatch(setLoading(true));
-  dispatch(setError(null));
-  dispatch(setCredentials(credentials));
-  dispatch(clearConfiguration());
+  dispatch([
+    setLoading(true),
+    setError(null),
+    setCredentials(credentials),
+    clearConfiguration(),
+  ]);
 
   Promise.all([getProjects(), getRepos()])
     .then(([projects, repos]) => {
-      dispatch(receiveEntities({ projects, repos }));
-      dispatch(setActiveStep(1, true));
-      dispatch(setLoading(false));
+      dispatch([
+        receiveEntities({ projects, repos }),
+        setActiveStep(1, true),
+        setLoading(false),
+      ]);
     })
     .catch(error => {
-      dispatch(setError(error));
-      dispatch(setLoading(false));
+      dispatch([setError(error), setLoading(false)]);
     });
 };
 
@@ -37,37 +40,40 @@ const saveConfiguration = configuration => (dispatch, getState) => {
   const project = projectSelector(configuration.project)(state);
   const repo = repoSelector(configuration.repo)(state);
 
-  dispatch(setLoading(true));
-  dispatch(setError(null));
-  dispatch(setConfiguration(configuration));
-  dispatch(clearReport());
+  dispatch([
+    setLoading(true),
+    setError(null),
+    setConfiguration(configuration),
+    clearReport(),
+  ]);
 
   Promise.all([getProjectReport(project), getRepoReport(repo)])
     .then(([projectReport, repoReport]) => {
-      dispatch(
+      dispatch([
         receiveEntities({
           sprints: repoReport.sprints,
           stories: repoReport.stories,
           timeEntries: projectReport.timeEntries,
         }),
-      );
-      dispatch(setActiveStep(2, true));
-      dispatch(setLoading(false));
+        setActiveStep(2, true),
+        setLoading(false),
+      ]);
     })
     .catch(error => {
-      dispatch(setError(error));
-      dispatch(setLoading(false));
+      dispatch([setError(error), setLoading(false)]);
     });
-};
-
-const clearConfiguration = () => dispatch => {
-  dispatch(setConfiguration({}));
-  dispatch(receiveEntities({ projects: [], repos: [] }));
-  dispatch(clearReport());
 };
 
 const clearReport = () => dispatch => {
   dispatch(receiveEntities({ sprints: [], stories: [], timeEntries: [] }));
 };
 
-export { clearConfiguration, clearReport, saveCredentials, saveConfiguration };
+const clearConfiguration = () => dispatch => {
+  dispatch([
+    setConfiguration({}),
+    receiveEntities({ projects: [], repos: [] }),
+    clearReport(),
+  ]);
+};
+
+export { saveCredentials, saveConfiguration };
