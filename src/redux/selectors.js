@@ -47,18 +47,20 @@ const projectSelector = id => state =>
 
 const reportSelector = state => {
   const hoursByStoryId = hoursByStoryIdSelector(state);
+  const { receivedAt, sprints, stories, timeEntries } = state.entities;
 
   return {
-    sprints: state.entities.sprints.map(sprint => ({
+    receivedAt,
+    timeEntries,
+    sprints: sprints.map(sprint => ({
       ...sprint,
-      velocity: getVelocity(state.entities.stories, sprint),
+      velocity: getVelocity(stories, sprint),
     })),
-    stories: state.entities.stories.map(story => ({
+    stories: stories.map(story => ({
       ...story,
-      sprint: getSprint(state.entities.sprints, story),
+      sprint: getSprint(sprints, story),
       trackedHours: get(hoursByStoryId, story.number, 0),
     })),
-    timeEntries: state.entities.timeEntries,
   };
 };
 

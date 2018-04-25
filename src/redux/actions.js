@@ -2,7 +2,7 @@ import { createAction } from 'redux-actions';
 
 const receiveEntities = createAction(
   'kubera/receiveEntities',
-  entities => entities,
+  (entities, receivedAt = Date.now()) => ({ entities, receivedAt }),
 );
 
 const setActiveStep = createAction(

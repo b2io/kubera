@@ -1,8 +1,9 @@
 import React from 'react';
-import { Tab } from 'semantic-ui-react';
+import { Button, Icon, Menu, Tab } from 'semantic-ui-react';
 import { shortDay } from '../util';
 import BurndownChart from './BurndownChart';
 import Table from './Table';
+import TimeAgo from './TimeAgo';
 
 const sprintColumns = [
   ['#', 'number'],
@@ -34,7 +35,7 @@ const tr = (columns, rows) => () => <Table columns={columns} rows={rows} />;
 
 class Report extends React.Component {
   render() {
-    const { sprints, stories, timeEntries } = this.props;
+    const { onRefresh, receivedAt, sprints, stories, timeEntries } = this.props;
     const panes = [
       { menuItem: 'Sprints', render: tr(sprintColumns, sprints) },
       { menuItem: 'Stories', render: tr(storyColumns, stories) },
@@ -44,6 +45,20 @@ class Report extends React.Component {
 
     return (
       <React.Fragment>
+        <Menu secondary>
+          <Menu.Item header>
+            <TimeAgo date={receivedAt} />
+          </Menu.Item>
+          <Menu.Menu position="right">
+            <Menu.Item>
+              <Button icon labelPosition="right" onClick={onRefresh}>
+                <Icon name="refresh" />
+                Refresh
+              </Button>
+            </Menu.Item>
+          </Menu.Menu>
+        </Menu>
+
         <BurndownChart sprints={sprints} stories={stories} />
         <Tab menu={tabMenu} panes={panes} />
       </React.Fragment>

@@ -13,6 +13,7 @@ const initialState = {
   configuration: {},
   entities: {
     projects: [],
+    receivedAt: 0,
     repos: [],
     sprints: [],
     stories: [],
@@ -31,13 +32,18 @@ const initialState = {
 
 const reducer = handleActions(
   {
-    [receiveEntities]: (state, action) => ({
-      ...state,
-      entities: {
-        ...state.entities,
-        ...action.payload,
-      },
-    }),
+    [receiveEntities]: (state, action) => {
+      const { entities, receivedAt } = action.payload;
+
+      return {
+        ...state,
+        entities: {
+          ...state.entities,
+          ...entities,
+          receivedAt,
+        },
+      };
+    },
 
     [setActiveStep]: (state, action) => {
       const { number, shouldForce } = action.payload;

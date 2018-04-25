@@ -12,7 +12,17 @@ import {
   setError,
   setLoading,
 } from './actions';
-import { projectSelector, repoSelector } from './selectors';
+import {
+  configurationSelector,
+  projectSelector,
+  repoSelector,
+} from './selectors';
+
+const refreshReport = () => (dispatch, getState) => {
+  const configuration = configurationSelector(getState());
+
+  dispatch(saveConfiguration(configuration));
+};
 
 const saveCredentials = credentials => (dispatch, getState) => {
   dispatch([
@@ -76,4 +86,4 @@ const clearConfiguration = () => dispatch => {
   ]);
 };
 
-export { saveCredentials, saveConfiguration };
+export { refreshReport, saveCredentials, saveConfiguration };
